@@ -606,7 +606,7 @@ const UI = {
     if (gaugeCircle) {
       const deg = (percentage / 100) * 360;
       gaugeCircle.style.background =
-        `conic-gradient(var(--color-primary) 0deg ${deg}deg, var(--color-light-gray) ${deg}deg 360deg)`;
+        `conic-gradient(var(--color-gold) 0deg ${deg}deg, rgba(255, 255, 255, 0.12) ${deg}deg 360deg)`;
     }
 
     const fireMessage = this.getFireMessage(results);
@@ -691,8 +691,8 @@ const UI = {
           {
             label: '資産額',
             data: timeline.map((d) => Math.round(d.assets)), // 万円単位
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderColor: '#c9a876',
+            backgroundColor: 'rgba(201, 168, 118, 0.12)',
             borderWidth: 3,
             fill: true,
             tension: 0.4,
