@@ -289,24 +289,6 @@ const UI = {
         if (field.max) input.max = field.max;
         input.placeholder = field.placeholder || '';
         input.value = State.getInput(field.id) || '';
-        if (field.unit) {
-          const wrapper = document.createElement('div');
-          wrapper.style.position = 'relative';
-          wrapper.appendChild(input);
-          const unitLabel = document.createElement('small');
-          unitLabel.style.position = 'absolute';
-          unitLabel.style.right = 'var(--spacing-md)';
-          unitLabel.style.top = '50%';
-          unitLabel.style.transform = 'translateY(-50%)';
-          unitLabel.textContent = field.unit;
-          unitLabel.style.pointerEvents = 'none';
-          wrapper.appendChild(unitLabel);
-          input.style.paddingRight = '3rem';
-          group.appendChild(label);
-          group.appendChild(wrapper);
-          form.appendChild(group);
-          return;
-        }
       }
 
       input.id = 'form-' + field.id;
@@ -317,9 +299,27 @@ const UI = {
         State.setInput(field.id, e.target.value);
       });
 
-      group.appendChild(label);
-      group.appendChild(input);
-      form.appendChild(group);
+      if (field.unit && field.type !== 'select') {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.appendChild(input);
+        const unitLabel = document.createElement('small');
+        unitLabel.style.position = 'absolute';
+        unitLabel.style.right = 'var(--spacing-md)';
+        unitLabel.style.top = '50%';
+        unitLabel.style.transform = 'translateY(-50%)';
+        unitLabel.textContent = field.unit;
+        unitLabel.style.pointerEvents = 'none';
+        wrapper.appendChild(unitLabel);
+        input.style.paddingRight = '3rem';
+        group.appendChild(label);
+        group.appendChild(wrapper);
+        form.appendChild(group);
+      } else {
+        group.appendChild(label);
+        group.appendChild(input);
+        form.appendChild(group);
+      }
     });
 
     // Update button states
