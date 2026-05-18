@@ -455,11 +455,10 @@ button {
   height: 160px;
   border-radius: 50%;
   background: conic-gradient(
-    var(--color-primary) 0deg,
-    var(--color-primary) 270deg,
-    var(--color-light-gray) 270deg,
-    var(--color-light-gray) 360deg
+    var(--color-primary) 0deg 0deg,
+    var(--color-light-gray) 0deg 360deg
   );
+  transition: background 600ms ease-out;
   display: flex;
   align-items: center;
   justify-content: center;

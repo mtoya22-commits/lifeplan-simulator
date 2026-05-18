@@ -167,6 +167,21 @@ const FormSteps = {
 };
 
 // ============================================
+// Format Helpers
+// ============================================
+const Format = {
+  // 万円を読みやすい文字列に（1万円未満四捨五入、1億円以上は「億」表記）
+  money(man) {
+    const v = Math.round(Number(man) || 0);
+    if (Math.abs(v) >= 10000) {
+      const oku = v / 10000;
+      return oku.toFixed(oku % 1 === 0 ? 0 : 1) + '億円';
+    }
+    return v.toLocaleString('ja-JP') + '万円';
+  },
+};
+
+// ============================================
 // UI Control
 // ============================================
 const UI = {
@@ -333,9 +348,17 @@ const UI = {
     const currentStep = steps[State.currentStep];
 
     for (const field of currentStep.fields) {
-      const value = State.getInput(field.id);
-      if (!value && value !== 0) {
+      const el = document.getElementById('form-' + field.id);
+      if (!el) continue;
+
+      const value = el.value;
+
+      // 表示されている値をStateへ確実に保存（selectの初期値も拾う）
+      State.setInput(field.id, value);
+
+      if (value === null || value === undefined || String(value).trim() === '') {
         alert(`${field.label}を入力してください`);
+        el.focus();
         return false;
       }
     }
@@ -345,8 +368,13 @@ const UI = {
   calculateAndShowResults() {
     const results = Calculator.calculate(State.inputs);
     State.setResults(results);
-    this.renderResultsScreen(results);
+    // 画面遷移を先に行い、描画失敗があっても結果画面は必ず表示する
     this.showScreen('result-screen');
+    try {
+      this.renderResultsScreen(results);
+    } catch (e) {
+      console.error('結果描画でエラー:', e);
+    }
   },
 
   renderResultsScreen(results) {
@@ -354,22 +382,36 @@ const UI = {
     const percentage = Math.min(Math.round(results.fireAchievementRate * 100), 100);
     document.getElementById('fire-percentage').textContent = percentage + '%';
 
+    // ゲージリングを実際の割合に合わせる
+    const gaugeCircle = document.querySelector('.gauge-circle');
+    if (gaugeCircle) {
+      const deg = (percentage / 100) * 360;
+      gaugeCircle.style.background =
+        `conic-gradient(var(--color-primary) 0deg ${deg}deg, var(--color-light-gray) ${deg}deg 360deg)`;
+    }
+
     const fireMessage = this.getFireMessage(results);
     document.getElementById('fire-message').textContent = fireMessage;
 
     const fireDetails = document.getElementById('fire-details');
+    const achievementText = results.fireAchievementAge
+      ? results.fireAchievementAge + '歳'
+      : '目標年齢では未達';
+    const lifespanText = results.depletionAge
+      ? results.depletionAge + '歳で資産が尽きる試算'
+      : '95歳まで維持できる試算';
     fireDetails.innerHTML = `
       <div class="fire-detail-item">
-        <span class="fire-detail-label">目標達成年齢</span>
-        <span class="fire-detail-value">${results.fireAchievementAge || '達成困難'}歳</span>
+        <span class="fire-detail-label">FIRE到達年齢</span>
+        <span class="fire-detail-value">${achievementText}</span>
       </div>
       <div class="fire-detail-item">
         <span class="fire-detail-label">95歳時点の資産</span>
-        <span class="fire-detail-value">${(results.assetsAt95 / 1000).toFixed(1)}千万円</span>
+        <span class="fire-detail-value">${Format.money(results.assetsAt95)}</span>
       </div>
       <div class="fire-detail-item">
         <span class="fire-detail-label">資産寿命</span>
-        <span class="fire-detail-value">${results.assetLifespan || '∞'}年</span>
+        <span class="fire-detail-value">${lifespanText}</span>
       </div>
       <div class="fire-detail-item">
         <span class="fire-detail-label">ステータス</span>
@@ -377,32 +419,45 @@ const UI = {
       </div>
     `;
 
-    // Chart
-    this.renderAssetChart(results.assetTimeline);
-
-    // Education summary
-    this.renderEducationSummary(results.educationCosts);
-
-    // Timeline
-    this.renderTimeline(results.lifeEvents);
-
-    // Cashflow table
-    this.renderCashflowTable(results.cashflow);
+    // 各セクションは独立して描画（1つ失敗しても他は表示する）
+    const sections = [
+      () => this.renderAssetChart(results.assetTimeline),
+      () => this.renderEducationSummary(results.educationCosts),
+      () => this.renderTimeline(results.lifeEvents),
+      () => this.renderCashflowTable(results.cashflow),
+    ];
+    sections.forEach((render) => {
+      try {
+        render();
+      } catch (e) {
+        console.error('セクション描画エラー:', e);
+      }
+    });
   },
 
   getFireMessage(results) {
     if (results.fireAchievementAge) {
-      return `${results.fireAchievementAge}歳でFIRE達成を目指せます`;
-    } else if (results.fireAchievementRate > 0.8) {
-      return '現在のペースではFIRE達成は難しいですが、改善の余地があります';
+      return `この前提なら ${results.fireAchievementAge}歳ごろ にFIREの目安に届きそうです`;
+    } else if (results.fireAchievementRate >= 0.7) {
+      return '目標まであと一歩。投資額や時期を少し調整すると届きそうです';
     } else {
-      return '投資額や貯蓄率の見直しが必要です';
+      return '今の前提だと少し距離があります。条件を変えて試してみましょう';
     }
   },
 
   renderAssetChart(timeline) {
     const canvas = document.getElementById('asset-chart');
     if (!canvas) return;
+
+    // Chart.js未読み込み時はフォールバック表示（結果画面は止めない）
+    if (typeof Chart === 'undefined') {
+      const container = canvas.parentElement;
+      if (container) {
+        container.innerHTML =
+          '<p style="text-align:center;color:var(--color-medium-gray);">グラフを読み込めませんでした（通信環境をご確認ください）。下の表で資産推移をご覧いただけます。</p>';
+      }
+      return;
+    }
 
     if (window.assetChart) {
       window.assetChart.destroy();
@@ -416,7 +471,7 @@ const UI = {
         datasets: [
           {
             label: '資産額',
-            data: timeline.map((d) => d.assets / 10000), // 万円単位
+            data: timeline.map((d) => Math.round(d.assets)), // 万円単位
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
             borderWidth: 3,
@@ -431,17 +486,25 @@ const UI = {
         responsive: true,
         maintainAspectRatio: true,
         plugins: {
-          legend: {
-            display: false,
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (item) => Format.money(item.parsed.y),
+            },
           },
         },
         scales: {
+          x: {
+            ticks: {
+              maxTicksLimit: 8,
+              autoSkip: true,
+            },
+          },
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function (value) {
-                return (value / 100).toFixed(0) + '万';
-              },
+              callback: (value) =>
+                value >= 10000 ? value / 10000 + '億' : value + '万',
             },
           },
         },
@@ -516,9 +579,9 @@ const UI = {
               (row) => `
             <tr>
               <td>${row.age}歳</td>
-              <td>${row.income}万</td>
-              <td>${row.expenses}万</td>
-              <td>${(row.assets / 10000).toFixed(1)}万</td>
+              <td>${row.income.toLocaleString('ja-JP')}万</td>
+              <td>${row.expenses.toLocaleString('ja-JP')}万</td>
+              <td>${Format.money(row.assets)}</td>
             </tr>
           `
             )
@@ -547,9 +610,9 @@ FIRE 人生設計シミュレーター 結果報告書
 
 【結果】
 FIRE達成度: ${Math.round(results.fireAchievementRate * 100)}%
-予想達成年齢: ${results.fireAchievementAge || '達成困難'}歳
-95歳時点の資産: ${(results.assetsAt95 / 1000).toFixed(1)}千万円
-資産寿命: ${results.assetLifespan || '∞'}年
+FIRE到達年齢: ${results.fireAchievementAge ? results.fireAchievementAge + '歳' : '目標年齢では未達'}
+95歳時点の資産: ${Format.money(results.assetsAt95)}
+資産寿命: ${results.depletionAge ? results.depletionAge + '歳で資産が尽きる試算' : '95歳まで維持できる試算'}
 
 このシミュレーターはざっくり現実的に見える化することを目的としており、
 税制、社会保険、年金などは簡略化しています。
@@ -568,100 +631,155 @@ FIRE達成度: ${Math.round(results.fireAchievementRate * 100)}%
 // Calculator
 // ============================================
 const Calculator = {
+  // すべて「万円」単位で計算する（単位変換バグを避けるため）
   calculate(inputs) {
-    const startAge = parseInt(inputs.age) || 30;
-    const startIncome = parseInt(inputs.income) || 500;
-    const startAssets = parseInt(inputs.assets) || 0;
-    const fireAge = parseInt(inputs.fireAge) || 50;
+    const startAge = parseInt(inputs.age, 10) || 30;
+    const income = parseInt(inputs.income, 10) || 500; // 世帯年収（万円/年）
+    const startAssets = parseInt(inputs.assets, 10) || 0; // 現在資産（万円）
+    const fireAge = parseInt(inputs.fireAge, 10) || 50;
     const fireType = inputs.fireType || 'full';
-    const fireMonthlyIncome = parseInt(inputs.fireMonthlyIncome) || 0;
-    const childCount = parseInt(inputs.childCount) || 0;
+    const fireMonthlyIncome = parseInt(inputs.fireMonthlyIncome, 10) || 0; // 万円/月
+    const childCount = parseInt(inputs.childCount, 10) || 0;
     const educationType = inputs.educationType || 'public';
-    const housingType = inputs.housingType || 'rent';
-    const monthlyHousing = parseInt(inputs.monthlyHousing) || 10;
+    const monthlyHousing = parseInt(inputs.monthlyHousing, 10) || 10; // 万円/月
 
-    // Constants
-    const annualReturnRate = 0.05; // 5% annual return
-    const inflationRate = 0.02; // 2% inflation
-    const workUntilAge = fireAge;
-    const lifeExpectancy = 100;
+    // 前提（ざっくりMVP・控えめな数値）
+    const returnRate = 0.04; // 年利4%（4%ルールと整合）
+    const inflationRate = 0.015; // インフレ1.5%
+    const incomeGrowth = 0.01; // 賃金上昇1%/年
+    const taxRate = 0.18; // 税・社会保険ざっくり18%（労働収入のみ）
+    const baseMonthlyLiving = 22; // 住居費を除く基本生活費（万円/月）
+    const lifeEnd = 95;
 
-    // Calculate annual expenses
-    const baseMonthlyExpenses = 25; // 基本生活費
-    const totalMonthlyExpenses = baseMonthlyExpenses + monthlyHousing;
-    const annualExpenses = totalMonthlyExpenses * 12;
+    // 教育費を「発生年齢→金額(万円)」のマップに展開
+    const educationByAge = this.buildEducationSchedule(startAge, childCount, educationType);
 
-    // Calculate annual investment (simple model)
-    const annualInvestment = (startIncome - (annualExpenses / 10000)) * 0.3; // 30% of net income
-
-    // Timeline simulation
     const assetTimeline = [];
     const cashflow = [];
-    let currentAssets = startAssets * 10000; // Convert to actual amount
+    let assets = startAssets;
     let fireAchievementAge = null;
+    let depletionAge = null;
+    let assetsAtFireAge = null;
+    let livingAtFireAge = null;
 
-    for (let age = startAge; age <= lifeExpectancy; age++) {
-      const yearIndex = age - startAge;
-      let annualIncome = 0;
-      let annualExpensesAdjusted = annualExpenses * 10000 * Math.pow(1 + inflationRate, yearIndex);
+    for (let age = startAge; age <= lifeEnd; age++) {
+      const yr = age - startAge;
 
-      if (age < workUntilAge) {
-        annualIncome = startIncome * 10000 * Math.pow(1 + 0.02, yearIndex); // 2% income growth
+      // 労働収入（統一式：完全FIRE=0／サイドFIRE=月収×12）
+      let laborIncome;
+      if (age < fireAge) {
+        laborIncome = income * Math.pow(1 + incomeGrowth, yr);
       } else if (fireType === 'side') {
-        annualIncome = fireMonthlyIncome * 10000 * 12;
+        laborIncome = fireMonthlyIncome * 12;
+      } else {
+        laborIncome = 0;
       }
 
-      // Asset growth
-      const investmentReturn = currentAssets * annualReturnRate;
-      const netInvestment = age < workUntilAge ? annualInvestment * 10000 : 0;
-      const yearlyTax = (annualIncome + investmentReturn) * 0.15; // Simplified tax
+      const tax = laborIncome * taxRate;
 
-      currentAssets = currentAssets * (1 + annualReturnRate) + netInvestment - annualExpensesAdjusted - yearlyTax;
+      const inflationFactor = Math.pow(1 + inflationRate, yr);
+      const baseLiving = (baseMonthlyLiving + monthlyHousing) * 12 * inflationFactor;
+      const educationCost = educationByAge[age] || 0;
+      const living = baseLiving + educationCost;
 
-      // Check FIRE achievement
-      if (
-        age >= fireAge &&
-        currentAssets >= annualExpensesAdjusted * 25 &&
-        !fireAchievementAge
-      ) {
+      // 統一式：翌年資産 = 前年資産×(1+年利) + 労働収入 − 生活費 − 税金
+      const startOfYearAssets = assets;
+      assets = startOfYearAssets * (1 + returnRate) + laborIncome - living - tax;
+
+      if (assets < 0 && depletionAge === null) {
+        depletionAge = age;
+      }
+
+      if (age === fireAge) {
+        assetsAtFireAge = Math.max(0, startOfYearAssets);
+        livingAtFireAge = baseLiving; // 教育費を除いた定常生活費で判定
+      }
+
+      // FIRE達成判定：目標年齢以降、資産が年間生活費の25倍（4%ルール）に到達
+      if (age >= fireAge && fireAchievementAge === null && assets >= baseLiving * 25) {
         fireAchievementAge = age;
       }
 
-      assetTimeline.push({
-        age,
-        assets: Math.max(0, currentAssets),
-      });
+      assetTimeline.push({ age, assets: Math.max(0, assets) });
 
-      if (yearIndex < 20) {
-        // First 20 years for cashflow table
+      if (yr < 20) {
         cashflow.push({
           age,
-          income: Math.max(0, annualIncome / 10000),
-          expenses: annualExpensesAdjusted / 10000,
-          assets: Math.max(0, currentAssets),
+          income: Math.round(laborIncome),
+          expenses: Math.round(living),
+          assets: Math.round(Math.max(0, assets)),
         });
       }
     }
 
-    // Calculate education costs
-    const educationCosts = this.calculateEducationCosts(childCount, educationType);
+    if (assetsAtFireAge === null) {
+      // fireAgeがシミュレーション範囲外のときのフォールバック
+      const last = assetTimeline[assetTimeline.length - 1];
+      assetsAtFireAge = last ? last.assets : startAssets;
+      livingAtFireAge = (baseMonthlyLiving + monthlyHousing) * 12;
+    }
 
-    // Generate life events
-    const lifeEvents = this.generateLifeEvents(startAge, fireAge, childCount, educationType);
+    const fireTarget = livingAtFireAge * 25;
+    const fireAchievementRate = fireTarget > 0
+      ? Math.max(0, Math.min(assetsAtFireAge / fireTarget, 1))
+      : 0;
+
+    const assetsAt95 = assetTimeline[lifeEnd - startAge]?.assets ?? 0;
+
+    let status;
+    if (fireAchievementAge !== null) {
+      status = '達成可能';
+    } else if (fireAchievementRate >= 0.7) {
+      status = 'あと一歩';
+    } else {
+      status = '見直し余地あり';
+    }
 
     return {
       fireAchievementAge,
-      fireAchievementRate: fireAchievementAge
-        ? Math.min((fireAchievementAge - startAge) / (fireAge - startAge), 1)
-        : 0,
-      assetsAt95: assetTimeline[95 - startAge]?.assets || currentAssets,
-      assetLifespan: currentAssets > 0 ? '確保' : '不足',
-      status: fireAchievementAge ? '達成可能' : '改善必要',
+      fireAchievementRate,
+      assetsAtFireAge,
+      assetsAt95,
+      depletionAge,
+      status,
       assetTimeline,
-      educationCosts,
-      lifeEvents,
+      educationCosts: this.calculateEducationCosts(childCount, educationType),
+      lifeEvents: this.generateLifeEvents(startAge, fireAge, childCount, educationType),
       cashflow,
     };
+  },
+
+  // 教育費の発生スケジュール（子の現在年齢が不明なMVPでは0歳と仮定）
+  buildEducationSchedule(startAge, childCount, educationType) {
+    const schedule = {};
+    if (!childCount || childCount <= 0) return schedule;
+
+    const costsByType = {
+      public: { middle: 130, high: 170, university: 260 },
+      mixed: { middle: 180, high: 280, university: 400 },
+      private: { middle: 260, high: 440, university: 620 },
+    };
+    const costs = costsByType[educationType] || costsByType.public;
+
+    // 中学(12-14歳→3年) / 高校(15-17歳→3年) / 大学(18-21歳→4年)
+    const stages = [
+      { startOffset: 12, years: 3, total: costs.middle },
+      { startOffset: 15, years: 3, total: costs.high },
+      { startOffset: 18, years: 4, total: costs.university },
+    ];
+
+    for (let i = 0; i < childCount; i++) {
+      // 子ごとに2歳ずつずらして重なりを緩和（ざっくり）
+      const childOffset = i * 2;
+      stages.forEach((stage) => {
+        const perYear = stage.total / stage.years;
+        for (let y = 0; y < stage.years; y++) {
+          const age = startAge + stage.startOffset + childOffset + y;
+          schedule[age] = (schedule[age] || 0) + perYear;
+        }
+      });
+    }
+    return schedule;
   },
 
   calculateEducationCosts(childCount, educationType) {
