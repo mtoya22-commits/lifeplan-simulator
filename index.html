@@ -84,30 +84,32 @@
 
     <!-- 入力画面 -->
     <div id="input-screen" class="screen">
-      <div class="screen-header">
-        <button class="btn-back" id="input-back-btn" aria-label="戻る">← 戻る</button>
-        <p class="step-eyebrow" id="step-eyebrow">STEP</p>
-        <h1 class="screen-title" id="step-title">まず、いまのあなたについて教えてください</h1>
-        <p class="step-rationale" id="step-rationale"></p>
-      </div>
-
-      <!-- プログレスバー -->
-      <div class="progress-section">
-        <div class="progress-bar">
-          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      <div class="input-scroll" id="input-scroll">
+        <div class="screen-header">
+          <button class="btn-back" id="input-back-btn" aria-label="戻る">← 戻る</button>
+          <p class="step-eyebrow" id="step-eyebrow">STEP</p>
+          <h1 class="screen-title" id="step-title">まず、いまのあなたについて教えてください</h1>
+          <p class="step-rationale" id="step-rationale"></p>
         </div>
-        <p class="progress-label">
-          <span id="current-step">1</span> / <span id="total-steps">5</span>
-        </p>
+
+        <!-- プログレスバー -->
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+          <p class="progress-label">
+            <span id="current-step">1</span> / <span id="total-steps">5</span>
+          </p>
+        </div>
+
+        <!-- フォーム -->
+        <form id="input-form" class="form">
+          <!-- 各ステップのフィールドはJavaScriptで生成される -->
+        </form>
       </div>
 
-      <!-- フォーム -->
-      <form id="input-form" class="form">
-        <!-- 各ステップのフィールドはJavaScriptで生成される -->
-      </form>
-
-      <!-- フォームアクション -->
-      <div class="form-actions form-actions--sticky">
+      <!-- フォームアクション（固定フッター） -->
+      <div class="form-actions form-actions--footer">
         <button type="button" id="prev-btn" class="btn btn--secondary">← 戻る</button>
         <button type="button" id="next-btn" class="btn btn--primary">次へ →</button>
       </div>

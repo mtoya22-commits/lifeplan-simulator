@@ -312,7 +312,8 @@ const UI = {
     });
   },
 
-  // スクロールを先頭へ（iframe/将来のスクロール器の両対応・即時）
+  // スクロールを先頭へ。入力画面は内部スクロール器(.input-scroll)を、
+  // それ以外はウィンドウ/ドキュメントをリセット（iOS Safari対策）。
   resetScroll() {
     window.scrollTo(0, 0);
     if (document.scrollingElement) {
@@ -322,6 +323,9 @@ const UI = {
     if (active) {
       active.scrollTop = 0;
     }
+    document.querySelectorAll('.input-scroll, .result-details, .result-hero').forEach((el) => {
+      el.scrollTop = 0;
+    });
   },
 
   showScreen(screenId) {
