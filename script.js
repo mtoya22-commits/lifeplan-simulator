@@ -333,8 +333,6 @@ const UI = {
   },
 
   renderInputScreen() {
-    this.resetScroll();
-
     const steps = FormSteps[State.mode];
     const currentStep = steps[State.currentStep];
     const totalSteps = steps.length;
@@ -451,6 +449,9 @@ const UI = {
 
     // 年利フィールドの表示切り替え
     this.updateReturnRateVisibility();
+
+    // スクロールはDOM更新完了後に実行（ブラウザ再フロー完了を待つ）
+    requestAnimationFrame(() => this.resetScroll());
   },
 
   updateReturnRateVisibility() {

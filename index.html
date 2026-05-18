@@ -115,60 +115,66 @@
 
     <!-- 結果画面 -->
     <div id="result-screen" class="screen">
-      <div class="screen-header">
-        <p class="step-eyebrow">YOUR PLAN</p>
-        <h1 class="screen-title">あなたの人生設計</h1>
-      </div>
+      <!-- 上段：FIRE達成度（固定） -->
+      <div class="result-hero">
+        <div class="screen-header">
+          <p class="step-eyebrow">YOUR PLAN</p>
+          <h1 class="screen-title">あなたの人生設計</h1>
+        </div>
 
-      <!-- FIRE達成度（ヒーローカード） -->
-      <div class="result-card result-card--hero">
-        <div class="card-content">
-          <h2 class="card-title">FIRE達成度</h2>
-          <div class="fire-gauge">
-            <div class="gauge-circle">
-              <svg class="gauge-ring" viewBox="0 0 120 120" aria-hidden="true">
-                <circle class="gauge-track" cx="60" cy="60" r="54" fill="none" />
-                <circle id="gauge-arc" cx="60" cy="60" r="54" fill="none"
-                  transform="rotate(-90 60 60)" stroke-linecap="round" />
-              </svg>
-              <span class="gauge-value" id="fire-percentage">0%</span>
+        <!-- FIRE達成度（ヒーローカード） -->
+        <div class="result-card result-card--hero">
+          <div class="card-content">
+            <h2 class="card-title">FIRE達成度</h2>
+            <div class="fire-gauge">
+              <div class="gauge-circle">
+                <svg class="gauge-ring" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="gauge-track" cx="60" cy="60" r="54" fill="none" />
+                  <circle id="gauge-arc" cx="60" cy="60" r="54" fill="none"
+                    transform="rotate(-90 60 60)" stroke-linecap="round" />
+                </svg>
+                <span class="gauge-value" id="fire-percentage">0%</span>
+              </div>
             </div>
+            <p class="fire-message" id="fire-message">シミュレーション中...</p>
+            <div class="fire-details" id="fire-details"></div>
           </div>
-          <p class="fire-message" id="fire-message">シミュレーション中...</p>
-          <div class="fire-details" id="fire-details"></div>
         </div>
       </div>
 
-      <!-- 人生のマイルストーン（感情的中核） -->
-      <div class="result-card">
-        <h2 class="card-title">これからの歩み</h2>
-        <div id="timeline" class="timeline"></div>
-      </div>
-
-      <!-- 資産推移グラフ -->
-      <div class="result-card">
-        <h2 class="card-title">資産の移り変わり</h2>
-        <div class="chart-container">
-          <canvas id="asset-chart" height="250"></canvas>
+      <!-- 下段：詳細情報（スクロール可能） -->
+      <div class="result-details">
+        <!-- 人生のマイルストーン（感情的中核） -->
+        <div class="result-card">
+          <h2 class="card-title">これからの歩み</h2>
+          <div id="timeline" class="timeline"></div>
         </div>
-      </div>
 
-      <!-- 教育費情報 -->
-      <div class="result-card">
-        <h2 class="card-title">教育費の山</h2>
-        <div id="education-summary" class="education-summary"></div>
-      </div>
+        <!-- 資産推移グラフ -->
+        <div class="result-card">
+          <h2 class="card-title">資産の移り変わり</h2>
+          <div class="chart-container">
+            <canvas id="asset-chart" height="250"></canvas>
+          </div>
+        </div>
 
-      <!-- キャッシュフロー表（プログレッシブ開示） -->
-      <details class="result-card result-card--details">
-        <summary class="details-summary">年度ごとの内訳を詳しく見る</summary>
-        <div id="cashflow-table" class="cashflow-table-wrapper"></div>
-      </details>
+        <!-- 教育費情報 -->
+        <div class="result-card">
+          <h2 class="card-title">教育費の山</h2>
+          <div id="education-summary" class="education-summary"></div>
+        </div>
 
-      <!-- アクション -->
-      <div class="result-actions">
-        <button id="download-btn" class="btn btn--secondary">結果を保存</button>
-        <button id="restart-btn" class="btn btn--primary">もう一度試す</button>
+        <!-- キャッシュフロー表（プログレッシブ開示） -->
+        <details class="result-card result-card--details">
+          <summary class="details-summary">年度ごとの内訳を詳しく見る</summary>
+          <div id="cashflow-table" class="cashflow-table-wrapper"></div>
+        </details>
+
+        <!-- アクション -->
+        <div class="result-actions">
+          <button id="download-btn" class="btn btn--secondary">結果を保存</button>
+          <button id="restart-btn" class="btn btn--primary">もう一度試す</button>
+        </div>
       </div>
     </div>
   </div>

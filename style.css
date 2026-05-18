@@ -532,6 +532,47 @@ legend {
 }
 
 /* ============================================
+   Result Screen Modal Layout
+   ============================================ */
+#result-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.result-hero {
+  flex-shrink: 0;
+  max-height: 50vh;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  background: linear-gradient(155deg, var(--color-navy-1), var(--color-navy-2));
+  overflow-y: auto;
+}
+
+.result-hero .screen-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.result-hero .screen-header .step-eyebrow {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.result-hero .screen-header .screen-title {
+  color: var(--color-white);
+}
+
+.result-details {
+  flex: 1;
+  padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-2xl);
+  overflow-y: auto;
+  background: var(--color-bg);
+}
+
+.result-details .result-card {
+  background: var(--color-white);
+}
+
+/* ============================================
    Result Cards
    ============================================ */
 .result-card {
@@ -585,11 +626,11 @@ legend {
 
 /* Hero — deep navy, the signature premium element */
 .result-card--hero {
-  background: linear-gradient(155deg, var(--color-navy-1), var(--color-navy-2));
+  background: transparent;
   border: none;
-  box-shadow: var(--shadow-hero);
+  box-shadow: none;
   color: var(--color-white);
-  padding: var(--spacing-2xl) var(--spacing-xl);
+  padding: 0;
 }
 
 .result-card--hero .card-title {
