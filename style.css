@@ -16,10 +16,14 @@
   --color-navy-1: #1e2a3a;        /* hero gradient start */
   --color-navy-2: #2c3e50;        /* hero gradient end */
 
-  --color-gold: #c9a876;          /* primary accent */
+  --color-gold: #c9a876;          /* the single primary accent */
   --color-gold-deep: #b5925e;     /* accent pressed / text-on-light */
-  --color-terracotta: #c97b5a;    /* warm secondary accent */
-  --color-sage: #7a9b7e;          /* positive / event marker */
+
+  /* terracotta / sage are FUNCTIONAL STATE colors only — never decorative */
+  --color-terracotta: #c97b5a;
+  --color-sage: #7a9b7e;
+  --color-state-positive: var(--color-sage);
+  --color-state-attention: var(--color-terracotta);
 
   --color-border: #e8e4d9;        /* warm hairline */
   --color-border-soft: #efece3;
@@ -47,9 +51,9 @@
   --fs-base: 15px;
   --fs-lg: 17px;
   --fs-xl: 20px;
-  --fs-2xl: 22px;
-  --fs-3xl: 32px;
-  --fs-display: 30px;
+  --fs-2xl: 20px;
+  --fs-3xl: 30px;
+  --fs-display: 26px;
   --fw-normal: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
@@ -111,16 +115,32 @@ button {
 
 /* Letter-spaced uppercase eyebrow label (signature element) */
 .eyebrow,
+.intro-eyebrow,
+.step-eyebrow,
 .card-title,
 .progress-label,
 .fire-detail-label,
 .mode-card__description,
 .education-item__year {
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--color-muted);
+}
+
+.intro-eyebrow,
+.step-eyebrow {
+  margin: 0 0 var(--spacing-md);
+}
+
+/* Calm one-line rationale under the question (interview voice) */
+.step-rationale {
+  margin: var(--spacing-md) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-muted);
+  line-height: 1.8;
+  max-width: 24em;
 }
 
 /* ============================================
@@ -146,7 +166,7 @@ button {
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -172,17 +192,21 @@ button {
 .intro-title {
   font-size: var(--fs-display);
   font-weight: var(--fw-bold);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--color-ink);
   margin-bottom: var(--spacing-lg);
+  max-width: 11em;
+  text-wrap: balance;
 }
 
 .intro-subtitle {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-base);
   color: var(--color-muted);
   line-height: 1.9;
   margin-bottom: var(--spacing-2xl);
+  max-width: 20em;
+  text-wrap: balance;
 }
 
 .intro-features {
@@ -203,15 +227,20 @@ button {
 }
 
 .feature-icon {
-  font-size: 1.5rem;
   width: 2.75rem;
   height: 2.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--color-gold-deep);
   background: var(--color-bg);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+}
+
+.feature-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .feature-item p {
@@ -255,7 +284,10 @@ button {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
+  line-height: 1.5;
   color: var(--color-ink);
+  max-width: 16em;
+  text-wrap: balance;
 }
 
 /* ============================================
@@ -305,6 +337,7 @@ button {
   font-weight: var(--fw-bold);
   color: var(--color-ink);
   margin-bottom: var(--spacing-md);
+  text-wrap: balance;
 }
 
 .mode-card__description {
@@ -335,7 +368,7 @@ button {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-gold), var(--color-terracotta));
+  background: linear-gradient(90deg, var(--color-gold), var(--color-gold-deep));
   border-radius: var(--radius-pill);
   transition: width 480ms var(--ease);
 }
@@ -421,6 +454,31 @@ legend {
   margin-top: var(--spacing-md);
 }
 
+/* Sticky action bar — primary action always reachable without scrolling.
+   Degrades to an in-flow bar inside auto-resizing iframes (acceptable:
+   the scroll reset keeps the form top-anchored). */
+.form-actions--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  margin: var(--spacing-xl) calc(-1 * var(--spacing-lg)) 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom));
+  background: rgba(244, 241, 234, 0.85);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  backdrop-filter: saturate(180%) blur(10px);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 700px) {
+  .form-actions--sticky {
+    margin-left: calc(-1 * var(--spacing-2xl));
+    margin-right: calc(-1 * var(--spacing-2xl));
+    padding-left: var(--spacing-2xl);
+    padding-right: var(--spacing-2xl);
+  }
+}
+
 /* ============================================
    Buttons
    ============================================ */
@@ -489,6 +547,42 @@ legend {
   margin-bottom: var(--spacing-lg);
 }
 
+/* Progressive disclosure — quiet text toggle, not a button */
+.result-card--details {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.details-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: var(--spacing-lg) 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-gold-deep);
+  text-align: center;
+  transition: var(--transition-base);
+}
+
+.details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.details-summary::after {
+  content: " ↓";
+  color: var(--color-muted);
+}
+
+.result-card--details[open] .details-summary::after {
+  content: " ↑";
+}
+
+.details-summary:hover {
+  color: var(--color-ink);
+}
+
 /* Hero — deep navy, the signature premium element */
 .result-card--hero {
   background: linear-gradient(155deg, var(--color-navy-1), var(--color-navy-2));
@@ -519,19 +613,35 @@ legend {
 
 .gauge-circle {
   position: relative;
-  width: 168px;
-  height: 168px;
-  border-radius: 50%;
+  width: 176px;
+  height: 176px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: conic-gradient(var(--color-gold) 0deg 0deg, rgba(255, 255, 255, 0.12) 0deg 360deg);
-  transition: background 720ms var(--ease);
+}
+
+.gauge-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gauge-track {
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 6;
+}
+
+#gauge-arc {
+  stroke: var(--color-gold);
+  stroke-width: 6;
+  transition: stroke-dashoffset 900ms var(--ease);
 }
 
 .gauge-value {
-  width: 142px;
-  height: 142px;
+  position: relative;
+  width: 138px;
+  height: 138px;
   border-radius: 50%;
   background: linear-gradient(155deg, var(--color-navy-1), var(--color-navy-2));
   display: flex;
@@ -604,7 +714,7 @@ canvas {
 
 .timeline-item {
   display: grid;
-  grid-template-columns: 14px 1fr;
+  grid-template-columns: 11px 1fr;
   gap: var(--spacing-lg);
   padding-bottom: var(--spacing-xl);
   position: relative;
@@ -613,25 +723,22 @@ canvas {
 .timeline-item:not(:last-child)::before {
   content: "";
   position: absolute;
-  left: 6px;
-  top: 16px;
-  width: 2px;
+  left: 5px;
+  top: 14px;
+  width: 1px;
   height: 100%;
   background: var(--color-border);
 }
 
 .timeline-dot {
-  width: 14px;
-  height: 14px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: var(--color-sage);
-  box-shadow: 0 0 0 4px var(--color-bg-soft);
-  margin-top: 5px;
+  background: var(--color-white);
+  border: 1.5px solid var(--color-gold-deep);
+  box-shadow: 0 0 0 4px var(--color-white);
+  margin-top: 6px;
   z-index: 1;
-}
-
-.timeline-item:nth-child(even) .timeline-dot {
-  background: var(--color-gold);
 }
 
 .timeline-label {
@@ -745,11 +852,11 @@ canvas {
   }
 
   .intro-title {
-    font-size: 52px;
+    font-size: 44px;
   }
 
   .screen-title {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .intro-features {
@@ -780,5 +887,19 @@ canvas {
 
   .result-actions .btn {
     flex: 1;
+  }
+}
+
+/* ============================================
+   Reduced motion — keep navigation instant
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

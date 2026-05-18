@@ -76,7 +76,9 @@ const State = {
 const FormSteps = {
   quick: [
     {
-      title: '基本情報',
+      title: 'あなたのこと',
+      question: 'まず、いまのあなたについて教えてください',
+      rationale: '将来の見通しは、いまの年齢・収入・資産から組み立てます。',
       fields: [
         { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35' },
         { id: 'income', label: '世帯年収', type: 'number', min: 0, unit: '万円', placeholder: '500' },
@@ -85,6 +87,8 @@ const FormSteps = {
     },
     {
       title: '家族',
+      question: 'お子さんはいらっしゃいますか',
+      rationale: '教育費は人生の支出の山になります。人数だけ伺います。',
       fields: [
         {
           id: 'childCount',
@@ -95,7 +99,9 @@ const FormSteps = {
       ],
     },
     {
-      title: 'FIRE目標',
+      title: 'これから',
+      question: 'どんなふうに働き方を変えたいですか',
+      rationale: '目標とする年齢とFIREのかたちで、必要な準備が変わります。',
       fields: [
         { id: 'fireAge', label: 'FIRE達成目標年齢', type: 'number', min: 25, max: 70, unit: '歳', placeholder: '45' },
         {
@@ -109,7 +115,9 @@ const FormSteps = {
   ],
   detailed: [
     {
-      title: '基本情報',
+      title: 'あなたのこと',
+      question: 'まず、いまのあなたについて教えてください',
+      rationale: '将来の見通しは、いまの年齢・収入・資産から組み立てます。',
       fields: [
         { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35' },
         { id: 'income', label: '世帯年収', type: 'number', min: 0, unit: '万円', placeholder: '500' },
@@ -117,7 +125,9 @@ const FormSteps = {
       ],
     },
     {
-      title: '家族構成',
+      title: '家族',
+      question: 'ご家族について教えてください',
+      rationale: '教育費は時期と人数で変わります。まずは人数から伺います。',
       fields: [
         {
           id: 'childCount',
@@ -128,7 +138,9 @@ const FormSteps = {
       ],
     },
     {
-      title: '住宅・ローン',
+      title: '住まい',
+      question: 'いまの住まいについて教えてください',
+      rationale: '住居費は家計の大きな固定費です。毎月の負担感を見ます。',
       fields: [
         {
           id: 'housingType',
@@ -140,7 +152,9 @@ const FormSteps = {
       ],
     },
     {
-      title: '住宅ローン詳細',
+      title: '住宅ローン',
+      question: '住宅ローンの条件を教えてください',
+      rationale: '金利タイプと残り年数で、将来の支出の形が変わります。',
       fields: [
         {
           id: 'loanType',
@@ -153,7 +167,9 @@ const FormSteps = {
       ],
     },
     {
-      title: '投資設定',
+      title: '資産形成',
+      question: 'どのくらい投資にまわせそうですか',
+      rationale: '毎月の積立と想定利回りが、将来の資産の伸びを決めます。',
       fields: [
         { id: 'monthlyInvestment', label: '毎月の投資額', type: 'number', min: 0, unit: '万円', placeholder: '5' },
         {
@@ -166,7 +182,9 @@ const FormSteps = {
       ],
     },
     {
-      title: '教育方針',
+      title: '教育の方針',
+      question: 'お子さんの教育はどう考えていますか',
+      rationale: '公立か私立かで、教育費の山の高さが大きく変わります。',
       fields: [
         {
           id: 'educationType',
@@ -177,7 +195,9 @@ const FormSteps = {
       ],
     },
     {
-      title: 'お子さんの詳細設定',
+      title: 'お子さんごと',
+      question: 'お子さんお一人ずつ教えてください',
+      rationale: '年齢と進学先がわかると、教育費の時期をより正確に描けます。',
       fields: [
         {
           id: 'children',
@@ -188,7 +208,9 @@ const FormSteps = {
       ],
     },
     {
-      title: 'FIRE設定',
+      title: 'これから',
+      question: 'どんなふうに働き方を変えたいですか',
+      rationale: '目標年齢とFIREのかたちで、必要な準備が変わります。',
       fields: [
         { id: 'fireAge', label: 'FIRE達成目標年齢', type: 'number', min: 25, max: 70, unit: '歳', placeholder: '45' },
         {
@@ -290,21 +312,43 @@ const UI = {
     });
   },
 
+  // スクロールを先頭へ（iframe/将来のスクロール器の両対応・即時）
+  resetScroll() {
+    window.scrollTo(0, 0);
+    if (document.scrollingElement) {
+      document.scrollingElement.scrollTop = 0;
+    }
+    const active = document.querySelector('.screen--active');
+    if (active) {
+      active.scrollTop = 0;
+    }
+  },
+
   showScreen(screenId) {
     document.querySelectorAll('.screen').forEach((screen) => {
       screen.classList.remove('screen--active');
     });
     document.getElementById(screenId).classList.add('screen--active');
-    window.scrollTo(0, 0);
+    this.resetScroll();
   },
 
   renderInputScreen() {
+    this.resetScroll();
+
     const steps = FormSteps[State.mode];
     const currentStep = steps[State.currentStep];
     const totalSteps = steps.length;
 
     // Update header
-    document.getElementById('step-title').textContent = currentStep.title;
+    const eyebrowEl = document.getElementById('step-eyebrow');
+    const rationaleEl = document.getElementById('step-rationale');
+    if (eyebrowEl) {
+      eyebrowEl.textContent = currentStep.title;
+    }
+    document.getElementById('step-title').textContent = currentStep.question || currentStep.title;
+    if (rationaleEl) {
+      rationaleEl.textContent = currentStep.rationale || '';
+    }
     document.getElementById('current-step').textContent = State.currentStep + 1;
     document.getElementById('total-steps').textContent = totalSteps;
 
@@ -597,16 +641,49 @@ const UI = {
   },
 
   renderResultsScreen(results) {
-    // FIRE gauge
+    // FIRE gauge — SVG弧でなめらかに描画
     const percentage = Math.min(Math.round(results.fireAchievementRate * 100), 100);
-    document.getElementById('fire-percentage').textContent = percentage + '%';
 
-    // ゲージリングを実際の割合に合わせる
-    const gaugeCircle = document.querySelector('.gauge-circle');
-    if (gaugeCircle) {
-      const deg = (percentage / 100) * 360;
-      gaugeCircle.style.background =
-        `conic-gradient(var(--color-gold) 0deg ${deg}deg, rgba(255, 255, 255, 0.12) ${deg}deg 360deg)`;
+    const arc = document.getElementById('gauge-arc');
+    const reduceMotion =
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (arc) {
+      const r = arc.r.baseVal.value;
+      const circumference = 2 * Math.PI * r;
+      arc.style.strokeDasharray = String(circumference);
+      // 初期は空、次フレームで目標値へ（transitionで弧が伸びる）
+      arc.style.strokeDashoffset = String(circumference);
+      const targetOffset = circumference * (1 - percentage / 100);
+      if (reduceMotion) {
+        arc.style.transition = 'none';
+        arc.style.strokeDashoffset = String(targetOffset);
+      } else {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            arc.style.strokeDashoffset = String(targetOffset);
+          });
+        });
+      }
+    }
+
+    // 数字を 0 → percentage にカウントアップ
+    const pctEl = document.getElementById('fire-percentage');
+    if (pctEl) {
+      if (reduceMotion || percentage === 0) {
+        pctEl.textContent = percentage + '%';
+      } else {
+        const duration = 900;
+        const start = performance.now();
+        const step = (now) => {
+          const t = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - t, 3);
+          pctEl.textContent = Math.round(eased * percentage) + '%';
+          if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
     }
 
     const fireMessage = this.getFireMessage(results);
