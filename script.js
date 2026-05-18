@@ -140,6 +140,32 @@ const FormSteps = {
       ],
     },
     {
+      title: '住宅ローン詳細',
+      fields: [
+        {
+          id: 'loanType',
+          label: 'ローンタイプ',
+          type: 'select',
+          options: { fixed: '全期間固定', variable: '変動金利', hybrid: '固定期間終了後変動' },
+        },
+        { id: 'loanRate', label: '金利', type: 'number', min: 0, max: 10, step: 0.1, unit: '%', placeholder: '2.5' },
+        { id: 'loanYears', label: '返済年数', type: 'number', min: 1, max: 50, unit: '年', placeholder: '35' },
+      ],
+    },
+    {
+      title: '投資設定',
+      fields: [
+        { id: 'monthlyInvestment', label: '毎月の投資額', type: 'number', min: 0, unit: '万円', placeholder: '5' },
+        {
+          id: 'returnRate',
+          label: '想定年利',
+          type: 'select',
+          options: { '0.03': '3%（保守的）', '0.04': '4%（標準）', '0.05': '5%（積極的）', 'custom': 'カスタム' },
+        },
+        { id: 'returnRateCustom', label: 'カスタム年利', type: 'number', min: 0, max: 20, step: 0.1, unit: '%', placeholder: '4' },
+      ],
+    },
+    {
       title: '教育方針',
       fields: [
         {
@@ -147,6 +173,17 @@ const FormSteps = {
           label: '教育方針',
           type: 'select',
           options: { public: '公立中心', mixed: '一部私立', private: '私立重視' },
+        },
+      ],
+    },
+    {
+      title: 'お子さんの詳細設定',
+      fields: [
+        {
+          id: 'children',
+          label: 'お子さんの情報を設定（年齢、進学予定）',
+          type: 'custom',
+          render: 'renderChildrenForm',
         },
       ],
     },
@@ -228,7 +265,8 @@ const UI = {
     });
 
     document.getElementById('next-btn').addEventListener('click', () => {
-      if (this.validateCurrentStep()) {
+      const valid = this.validateCurrentStep();
+      if (valid) {
         const totalSteps = FormSteps[State.mode].length;
         if (State.currentStep < totalSteps - 1) {
           State.currentStep++;
@@ -236,6 +274,9 @@ const UI = {
         } else {
           this.calculateAndShowResults();
         }
+      } else {
+        // バリデーション失敗をコンソール出力
+        console.warn('Validation failed at step', State.currentStep + 1);
       }
     });
 
@@ -276,6 +317,14 @@ const UI = {
     form.innerHTML = '';
 
     currentStep.fields.forEach((field) => {
+      // カスタムレンダリング（お子さん詳細フォーム）
+      if (field.type === 'custom') {
+        if (field.render === 'renderChildrenForm') {
+          UI.renderChildrenForm(form);
+        }
+        return;
+      }
+
       const group = document.createElement('div');
       group.className = 'form-group';
 
@@ -296,23 +345,37 @@ const UI = {
           }
           input.appendChild(option);
         });
+        input.addEventListener('change', (e) => {
+          State.setInput(field.id, e.target.value);
+          // 年利がカスタムに変わったら、カスタム入力フィールドを表示・非表示に
+          if (field.id === 'returnRate') {
+            UI.updateReturnRateVisibility();
+          }
+        });
       } else {
         input = document.createElement('input');
         input.className = 'form-input';
         input.type = field.type;
         input.min = field.min || 0;
         if (field.max) input.max = field.max;
+        if (field.step) input.step = field.step;
         input.placeholder = field.placeholder || '';
         input.value = State.getInput(field.id) || '';
+        input.addEventListener('change', (e) => {
+          State.setInput(field.id, e.target.value);
+        });
+        input.addEventListener('input', (e) => {
+          State.setInput(field.id, e.target.value);
+        });
       }
 
       input.id = 'form-' + field.id;
-      input.addEventListener('change', (e) => {
-        State.setInput(field.id, e.target.value);
-      });
-      input.addEventListener('input', (e) => {
-        State.setInput(field.id, e.target.value);
-      });
+
+      // カスタム年利フィールドはデフォルト非表示
+      if (field.id === 'returnRateCustom') {
+        group.id = 'form-group-returnRateCustom';
+        // renderInputScreenの終了後に表示切り替えするため、ここでは非表示にしない（後処理で制御）
+      }
 
       if (field.unit && field.type !== 'select') {
         const wrapper = document.createElement('div');
@@ -341,6 +404,99 @@ const UI = {
     document.getElementById('prev-btn').style.display = State.currentStep === 0 ? 'none' : 'flex';
     const isLastStep = State.currentStep === totalSteps - 1;
     document.getElementById('next-btn').textContent = isLastStep ? '結果を見る →' : '次へ →';
+
+    // 年利フィールドの表示切り替え
+    this.updateReturnRateVisibility();
+  },
+
+  updateReturnRateVisibility() {
+    const customGroup = document.getElementById('form-group-returnRateCustom');
+    if (customGroup) {
+      customGroup.style.display = State.getInput('returnRate') === 'custom' ? 'flex' : 'none';
+    }
+  },
+
+  renderChildrenForm(form) {
+    const childCount = parseInt(State.getInput('childCount'), 10) || 0;
+    if (childCount === 0) {
+      const p = document.createElement('p');
+      p.style.color = 'var(--color-medium-gray)';
+      p.textContent = 'お子さんがいないため、設定はありません';
+      form.appendChild(p);
+      return;
+    }
+
+    const childrenData = State.getInput('children') ? JSON.parse(State.getInput('children')) : [];
+
+    for (let i = 0; i < childCount; i++) {
+      const child = childrenData[i] || { age: '', schoolType: 'public' };
+
+      // お子さんのセクション
+      const section = document.createElement('fieldset');
+      section.style.border = '1px solid var(--color-border)';
+      section.style.borderRadius = 'var(--radius-md)';
+      section.style.padding = 'var(--spacing-md)';
+      section.style.marginBottom = 'var(--spacing-md)';
+
+      const legend = document.createElement('legend');
+      legend.style.paddingLeft = 'var(--spacing-sm)';
+      legend.style.fontWeight = 'var(--font-weight-semibold)';
+      legend.textContent = `お子さん ${i + 1}`;
+      section.appendChild(legend);
+
+      // 年齢入力
+      const ageGroup = document.createElement('div');
+      ageGroup.className = 'form-group';
+      const ageLabel = document.createElement('label');
+      ageLabel.className = 'form-label';
+      ageLabel.textContent = '現在の年齢';
+      const ageInput = document.createElement('input');
+      ageInput.className = 'form-input';
+      ageInput.type = 'number';
+      ageInput.min = 0;
+      ageInput.max = 30;
+      ageInput.placeholder = '10';
+      ageInput.value = child.age;
+      ageInput.addEventListener('input', (e) => {
+        childrenData[i] = childrenData[i] || {};
+        childrenData[i].age = e.target.value;
+        State.setInput('children', JSON.stringify(childrenData));
+      });
+      ageGroup.appendChild(ageLabel);
+      ageGroup.appendChild(ageInput);
+      section.appendChild(ageGroup);
+
+      // 進学予定
+      const schoolGroup = document.createElement('div');
+      schoolGroup.className = 'form-group';
+      const schoolLabel = document.createElement('label');
+      schoolLabel.className = 'form-label';
+      schoolLabel.textContent = '進学予定';
+      const schoolSelect = document.createElement('select');
+      schoolSelect.className = 'form-select';
+      const schoolOptions = [
+        { value: 'public', text: '公立' },
+        { value: 'private', text: '私立' },
+        { value: 'mixed', text: '一部私立' },
+      ];
+      schoolOptions.forEach((opt) => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.text;
+        if (child.schoolType === opt.value) option.selected = true;
+        schoolSelect.appendChild(option);
+      });
+      schoolSelect.addEventListener('change', (e) => {
+        childrenData[i] = childrenData[i] || {};
+        childrenData[i].schoolType = e.target.value;
+        State.setInput('children', JSON.stringify(childrenData));
+      });
+      schoolGroup.appendChild(schoolLabel);
+      schoolGroup.appendChild(schoolSelect);
+      section.appendChild(schoolGroup);
+
+      form.appendChild(section);
+    }
   },
 
   validateCurrentStep() {
@@ -348,14 +504,77 @@ const UI = {
     const currentStep = steps[State.currentStep];
 
     for (const field of currentStep.fields) {
+      // カスタムフィールドはスキップ（独自のバリデーション）
+      if (field.type === 'custom') {
+        if (field.id === 'children') {
+          const childCount = parseInt(State.getInput('childCount'), 10) || 0;
+          if (childCount > 0) {
+            const childrenData = State.getInput('children') ? JSON.parse(State.getInput('children')) : [];
+            for (let i = 0; i < childCount; i++) {
+              const child = childrenData[i];
+              if (!child || !child.age || String(child.age).trim() === '') {
+                alert(`お子さん ${i + 1} の年齢を入力してください`);
+                return false;
+              }
+            }
+          }
+        }
+        continue;
+      }
+
       const el = document.getElementById('form-' + field.id);
-      if (!el) continue;
+      if (!el) {
+        console.warn(`Skipping field ${field.id} - element not found`);
+        continue;
+      }
 
       const value = el.value;
 
       // 表示されている値をStateへ確実に保存（selectの初期値も拾う）
       State.setInput(field.id, value);
 
+      // カスタム年利の場合のみ、カスタム値が入っていることを確認
+      // returnRateCustom フィールド自体はスキップ（独立した入力ではなく、returnRateがcustomの時のみチェック）
+      if (field.id === 'returnRate') {
+        if (value === 'custom') {
+          const customEl = document.getElementById('form-returnRateCustom');
+          if (customEl) {
+            const customValue = customEl.value;
+            if (!customValue || String(customValue).trim() === '') {
+              alert('カスタム年利を入力してください');
+              customEl.focus();
+              return false;
+            }
+            State.setInput('returnRateCustom', customValue);
+          } else {
+            alert('カスタム年利フィールドが見つかりません');
+            return false;
+          }
+        }
+        // customでない場合は何もしない（デフォルト値はOK）
+      }
+
+      // returnRateCustom フィールド定義はスキップ（returnRate で制御）
+      if (field.id === 'returnRateCustom') {
+        continue;
+      }
+
+      // fireMonthlyIncome はサイドFIREの場合のみ必須
+      if (field.id === 'fireMonthlyIncome') {
+        if (State.getInput('fireType') === 'full') {
+          // 完全FIREの場合はスキップ
+          continue;
+        }
+        // サイドFIREの場合は必須
+        if (value === null || value === undefined || String(value).trim() === '') {
+          alert(`${field.label}を入力してください`);
+          el.focus();
+          return false;
+        }
+        continue;
+      }
+
+      // 空値チェック（オプショナルフィールドは除く）
       if (value === null || value === undefined || String(value).trim() === '') {
         alert(`${field.label}を入力してください`);
         el.focus();
@@ -642,17 +861,38 @@ const Calculator = {
     const childCount = parseInt(inputs.childCount, 10) || 0;
     const educationType = inputs.educationType || 'public';
     const monthlyHousing = parseInt(inputs.monthlyHousing, 10) || 10; // 万円/月
+    const monthlyInvestment = parseInt(inputs.monthlyInvestment, 10) || 0; // 万円/月
+    const loanType = inputs.loanType || 'fixed';
+    const loanRate = parseFloat(inputs.loanRate) || 2.5; // %
+    const loanYears = parseInt(inputs.loanYears, 10) || 35;
+
+    // 投資年利：選択値またはカスタム値
+    let returnRate = 0.04; // デフォルト
+    if (inputs.returnRate && inputs.returnRate !== 'custom') {
+      returnRate = parseFloat(inputs.returnRate);
+    } else if (inputs.returnRate === 'custom' && inputs.returnRateCustom) {
+      returnRate = parseFloat(inputs.returnRateCustom) / 100;
+    }
+
+    // お子さんの詳細情報（子ども別計算用）
+    let childrenData = [];
+    if (inputs.children) {
+      try {
+        childrenData = JSON.parse(inputs.children);
+      } catch (e) {
+        childrenData = [];
+      }
+    }
 
     // 前提（ざっくりMVP・控えめな数値）
-    const returnRate = 0.04; // 年利4%（4%ルールと整合）
     const inflationRate = 0.015; // インフレ1.5%
     const incomeGrowth = 0.01; // 賃金上昇1%/年
     const taxRate = 0.18; // 税・社会保険ざっくり18%（労働収入のみ）
     const baseMonthlyLiving = 22; // 住居費を除く基本生活費（万円/月）
     const lifeEnd = 95;
 
-    // 教育費を「発生年齢→金額(万円)」のマップに展開
-    const educationByAge = this.buildEducationSchedule(startAge, childCount, educationType);
+    // 教育費を子ども別・年齢別で計算
+    const educationByAge = this.buildDetailedEducationSchedule(startAge, childrenData, educationType);
 
     const assetTimeline = [];
     const cashflow = [];
@@ -682,9 +922,12 @@ const Calculator = {
       const educationCost = educationByAge[age] || 0;
       const living = baseLiving + educationCost;
 
-      // 統一式：翌年資産 = 前年資産×(1+年利) + 労働収入 − 生活費 − 税金
+      // 毎月の投資を12倍にして年投資額に（fireAge以前のみ）
+      const annualInvestment = age < fireAge ? monthlyInvestment * 12 : 0;
+
+      // 統一式：翌年資産 = 前年資産×(1+年利) + 労働収入 + 投資 − 生活費 − 税金
       const startOfYearAssets = assets;
-      assets = startOfYearAssets * (1 + returnRate) + laborIncome - living - tax;
+      assets = startOfYearAssets * (1 + returnRate) + laborIncome + annualInvestment - living - tax;
 
       if (assets < 0 && depletionAge === null) {
         depletionAge = age;
@@ -749,7 +992,46 @@ const Calculator = {
     };
   },
 
-  // 教育費の発生スケジュール（子の現在年齢が不明なMVPでは0歳と仮定）
+  // 子ども別・進学先別の詳細な教育費スケジュール
+  buildDetailedEducationSchedule(startAge, childrenData, fallbackEducationType) {
+    const schedule = {};
+    if (!childrenData || childrenData.length === 0) return schedule;
+
+    const costsByType = {
+      public: { middle: 130, high: 170, university: 260 },
+      mixed: { middle: 180, high: 280, university: 400 },
+      private: { middle: 260, high: 440, university: 620 },
+    };
+
+    childrenData.forEach((child, childIdx) => {
+      const childAge = parseInt(child.age, 10) || 0;
+      const schoolType = child.schoolType || fallbackEducationType || 'public';
+      const costs = costsByType[schoolType] || costsByType.public;
+
+      // 中学(12-14歳→3年) / 高校(15-17歳→3年) / 大学(18-21歳→4年)
+      const stages = [
+        { ageStart: 12, years: 3, total: costs.middle },
+        { ageStart: 15, years: 3, total: costs.high },
+        { ageStart: 18, years: 4, total: costs.university },
+      ];
+
+      stages.forEach((stage) => {
+        const perYear = stage.total / stage.years;
+        for (let y = 0; y < stage.years; y++) {
+          // 子の現在年齢から相対的に計算
+          const targetAge = childAge + (stage.ageStart - childAge) + y;
+          const personAge = startAge + (targetAge - childAge);
+          if (personAge >= startAge && personAge <= 95) {
+            schedule[personAge] = (schedule[personAge] || 0) + perYear;
+          }
+        }
+      });
+    });
+
+    return schedule;
+  },
+
+  // 教育費の発生スケジュール（旧：簡易版用のフォールバック）
   buildEducationSchedule(startAge, childCount, educationType) {
     const schedule = {};
     if (!childCount || childCount <= 0) return schedule;
