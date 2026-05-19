@@ -114,7 +114,27 @@
 
 .lifeplan-app .intro-eyebrow,
 .lifeplan-app .step-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   margin: 0 0 var(--spacing-md);
+  color: var(--color-gold-deep);
+}
+
+.lifeplan-app .intro-eyebrow::before,
+.lifeplan-app .step-eyebrow::before {
+  content: "";
+  width: 28px;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--color-gold-deep), var(--color-gold));
+}
+
+.lifeplan-app .result-hero .step-eyebrow {
+  color: var(--color-gold);
+}
+
+.lifeplan-app .result-hero .step-eyebrow::before {
+  background: linear-gradient(90deg, var(--color-gold), rgba(201, 168, 118, 0.3));
 }
 
 .lifeplan-app .step-rationale {
@@ -178,6 +198,42 @@
   }
 }
 
+@keyframes lifeplan-rise-lg {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lifeplan-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lifeplan-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes lifeplan-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
 /* ============================================
    Intro Screen
    ============================================ */
@@ -228,6 +284,13 @@
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xs);
+  transition: var(--transition-base);
+}
+
+.lifeplan-app .feature-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .lifeplan-app .feature-icon {
@@ -237,9 +300,23 @@
   align-items: center;
   justify-content: center;
   color: var(--color-gold-deep);
-  background: var(--color-bg);
+  background: linear-gradient(
+    150deg,
+    rgba(201, 168, 118, 0.16),
+    rgba(201, 168, 118, 0.06)
+  );
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  transition: var(--transition-base);
+}
+
+.lifeplan-app .feature-item:hover .feature-icon {
+  color: var(--color-white);
+  background: linear-gradient(
+    150deg,
+    var(--color-gold),
+    var(--color-gold-deep)
+  );
 }
 
 .lifeplan-app .feature-icon svg {
@@ -327,13 +404,35 @@
 
 .lifeplan-app .mode-card:hover,
 .lifeplan-app .mode-card:active {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-md);
 }
 
 .lifeplan-app .mode-card:hover::after,
-.lifeplan-app .mode-card:active::after {
+.lifeplan-app .mode-card:active::after,
+.lifeplan-app .mode-card:focus-visible::after {
   border-color: var(--color-gold);
+}
+
+.lifeplan-app .mode-card:focus-visible {
+  outline: none;
+}
+
+/* Selected state */
+.lifeplan-app .mode-card.is-selected,
+.lifeplan-app .mode-card[aria-pressed="true"] {
+  background: linear-gradient(
+    160deg,
+    rgba(201, 168, 118, 0.1),
+    rgba(201, 168, 118, 0.03)
+  );
+  box-shadow: 0 8px 26px rgba(181, 146, 94, 0.22);
+}
+
+.lifeplan-app .mode-card.is-selected::after,
+.lifeplan-app .mode-card[aria-pressed="true"]::after {
+  border-color: var(--color-gold-deep);
+  border-width: 2px;
 }
 
 .lifeplan-app .mode-card__title {
@@ -363,18 +462,36 @@
 }
 
 .lifeplan-app .progress-bar {
-  height: 5px;
+  position: relative;
+  height: 6px;
   background: var(--color-border);
   border-radius: var(--radius-pill);
   overflow: hidden;
   margin-bottom: var(--spacing-md);
+  box-shadow: inset 0 1px 2px rgba(38, 41, 46, 0.06);
 }
 
 .lifeplan-app .progress-fill {
+  position: relative;
   height: 100%;
   background: linear-gradient(90deg, var(--color-gold), var(--color-gold-deep));
   border-radius: var(--radius-pill);
-  transition: width 480ms var(--ease);
+  transition: width 560ms var(--ease);
+  box-shadow: 0 0 10px rgba(201, 168, 118, 0.5);
+  overflow: hidden;
+}
+
+.lifeplan-app .progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: lifeplan-shimmer 2200ms var(--ease) infinite;
 }
 
 .lifeplan-app .progress-label {
@@ -425,11 +542,19 @@
   padding-right: calc(var(--spacing-lg) * 2);
 }
 
+.lifeplan-app .form-input:hover,
+.lifeplan-app .form-select:hover {
+  border-color: var(--color-muted);
+}
+
 .lifeplan-app .form-input:focus,
 .lifeplan-app .form-select:focus {
   outline: none;
   border-color: var(--color-gold);
-  box-shadow: 0 0 0 4px rgba(201, 168, 118, 0.16);
+  background: var(--color-white);
+  box-shadow: 0 0 0 4px rgba(201, 168, 118, 0.18),
+    0 4px 14px rgba(38, 41, 46, 0.06);
+  transform: translateY(-1px);
 }
 
 .lifeplan-app .form-input::placeholder {
@@ -439,6 +564,64 @@
 .lifeplan-app .form-hint {
   font-size: var(--fs-xs);
   color: var(--color-muted);
+}
+
+/* Error state */
+.lifeplan-app .form-input--error,
+.lifeplan-app .form-select--error,
+.lifeplan-app .form-input.is-invalid,
+.lifeplan-app .form-select.is-invalid {
+  border-color: var(--color-terracotta);
+  background: rgba(201, 123, 90, 0.05);
+}
+
+.lifeplan-app .form-input--error:focus,
+.lifeplan-app .form-select--error:focus,
+.lifeplan-app .form-input.is-invalid:focus,
+.lifeplan-app .form-select.is-invalid:focus {
+  border-color: var(--color-terracotta);
+  box-shadow: 0 0 0 4px rgba(201, 123, 90, 0.16);
+}
+
+.lifeplan-app .form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: var(--fs-sm);
+  color: var(--color-terracotta);
+  animation: lifeplan-rise 280ms var(--ease);
+}
+
+.lifeplan-app .form-error::before {
+  content: "!";
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  margin-top: 0.15em;
+  border-radius: 50%;
+  background: var(--color-terracotta);
+  color: #fff;
+  font-size: 0.8em;
+  font-weight: var(--fw-bold);
+}
+
+/* Success state */
+.lifeplan-app .form-success {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--fs-sm);
+  color: var(--color-sage);
+  animation: lifeplan-rise 280ms var(--ease);
+}
+
+.lifeplan-app .form-success::before {
+  content: "✓";
+  flex-shrink: 0;
+  font-weight: var(--fw-bold);
 }
 
 .lifeplan-app fieldset {
@@ -478,6 +661,7 @@
    Buttons
    ============================================ */
 .lifeplan-app .btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -488,31 +672,87 @@
   font-weight: var(--fw-semibold);
   letter-spacing: 0.01em;
   transition: var(--transition-base);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Subtle light sweep across every button on hover */
+.lifeplan-app .btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 620ms var(--ease);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.lifeplan-app .btn:hover::after,
+.lifeplan-app .btn:focus-visible::after {
+  transform: translateX(120%);
+}
+
+.lifeplan-app .btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.lifeplan-app .btn:active {
+  transform: scale(0.985);
 }
 
 .lifeplan-app .btn--primary {
-  background: var(--color-ink);
+  background: linear-gradient(165deg, #2f333a, var(--color-ink));
   color: var(--color-white);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 6px 18px rgba(38, 41, 46, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .lifeplan-app .btn--primary:hover,
 .lifeplan-app .btn--primary:active {
-  background: #1b1d21;
+  background: linear-gradient(165deg, #3a3f47, #1b1d21);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 30px rgba(38, 41, 46, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .lifeplan-app .btn--secondary {
   background: var(--color-white);
   color: var(--color-ink-soft);
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
 }
 
 .lifeplan-app .btn--secondary:hover,
 .lifeplan-app .btn--secondary:active {
-  border-color: var(--color-muted);
+  border-color: var(--color-gold);
+  color: var(--color-ink);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Gold accent button — premium emphasis variant */
+.lifeplan-app .btn--accent {
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-deep));
+  color: #fff;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 20px rgba(181, 146, 94, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+
+.lifeplan-app .btn--accent:hover,
+.lifeplan-app .btn--accent:active {
+  background: linear-gradient(135deg, var(--color-gold-deep), #9f7a4d);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(181, 146, 94, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
 .lifeplan-app .btn--large {
@@ -522,8 +762,40 @@
 }
 
 .lifeplan-app .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
+}
+
+.lifeplan-app .btn:disabled::after {
+  display: none;
+}
+
+/* Loading state — spinner overlay */
+.lifeplan-app .btn--loading {
+  color: transparent !important;
+  cursor: wait;
+  pointer-events: none;
+}
+
+.lifeplan-app .btn--loading::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  color: #fff;
+  animation: lifeplan-spin 720ms linear infinite;
+}
+
+.lifeplan-app .btn--secondary.btn--loading::before {
+  border-color: rgba(38, 41, 46, 0.2);
+  border-top-color: var(--color-ink);
 }
 
 /* ============================================
@@ -538,6 +810,7 @@
 }
 
 .lifeplan-app .result-hero {
+  position: relative;
   flex-shrink: 0;
   max-height: 50vh;
   padding: var(--spacing-xl) var(--spacing-lg);
@@ -545,12 +818,53 @@
   overflow-y: auto;
 }
 
+/* Gold accent line crowning the hero */
+.lifeplan-app .result-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gold-deep),
+    var(--color-gold) 45%,
+    transparent 85%
+  );
+  z-index: 2;
+}
+
+/* Soft light pools for depth */
+.lifeplan-app .result-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      circle at 18% 12%,
+      rgba(201, 168, 118, 0.16) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 88% 90%,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lifeplan-app .result-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
 .lifeplan-app .result-hero .screen-header {
   margin-bottom: var(--spacing-xl);
 }
 
 .lifeplan-app .result-hero .screen-header .step-eyebrow {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-gold);
 }
 
 .lifeplan-app .result-hero .screen-header .screen-title {
@@ -572,6 +886,7 @@
    Result Cards
    ============================================ */
 .lifeplan-app .result-card {
+  position: relative;
   background: var(--color-white);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
@@ -581,7 +896,34 @@
 }
 
 .lifeplan-app .card-title {
+  position: relative;
   margin-bottom: var(--spacing-lg);
+  padding-left: var(--spacing-md);
+}
+
+.lifeplan-app .card-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0.95em;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    180deg,
+    var(--color-gold),
+    var(--color-gold-deep)
+  );
+}
+
+.lifeplan-app .result-card--hero .card-title,
+.lifeplan-app .result-card--details .details-summary {
+  padding-left: 0;
+}
+
+.lifeplan-app .result-card--hero .card-title::before {
+  display: none;
 }
 
 .lifeplan-app .result-card--details {
@@ -671,6 +1013,7 @@
   stroke: var(--color-gold);
   stroke-width: 6;
   transition: stroke-dashoffset 900ms var(--ease);
+  filter: drop-shadow(0 0 6px rgba(201, 168, 118, 0.55));
 }
 
 .lifeplan-app .gauge-value {
@@ -686,7 +1029,9 @@
   font-weight: var(--fw-bold);
   letter-spacing: -0.02em;
   color: var(--color-gold);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(201, 168, 118, 0.18),
+    inset 0 0 24px rgba(201, 168, 118, 0.1),
+    0 8px 24px rgba(15, 20, 30, 0.4);
 }
 
 .lifeplan-app .fire-message {
@@ -872,6 +1217,65 @@
 }
 
 /* ============================================
+   Responsive — Small mobile (max 479px)
+   ============================================ */
+@media (max-width: 479px) {
+  .lifeplan-app .screen {
+    padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
+  }
+
+  .lifeplan-app .intro-container {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+
+  .lifeplan-app .intro-title {
+    font-size: 23px;
+  }
+
+  .lifeplan-app .intro-subtitle {
+    font-size: var(--fs-sm);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .lifeplan-app .screen-title {
+    font-size: var(--fs-xl);
+  }
+
+  .lifeplan-app .feature-item {
+    padding: var(--spacing-md);
+  }
+
+  .lifeplan-app .mode-card {
+    padding: var(--spacing-lg);
+  }
+
+  .lifeplan-app .result-card {
+    padding: var(--spacing-lg);
+  }
+
+  .lifeplan-app .result-hero,
+  .lifeplan-app .result-details {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+
+  .lifeplan-app .gauge-circle {
+    width: 156px;
+    height: 156px;
+  }
+
+  .lifeplan-app .gauge-value {
+    width: 122px;
+    height: 122px;
+    font-size: 26px;
+  }
+
+  .lifeplan-app .fire-details {
+    gap: var(--spacing-md) var(--spacing-sm);
+  }
+}
+
+/* ============================================
    Responsive — Tablet (700px+)
    ============================================ */
 @media (min-width: 700px) {
@@ -922,6 +1326,75 @@
 
   .lifeplan-app .result-actions .btn {
     flex: 1;
+  }
+}
+
+/* ============================================
+   Toast / Notification
+   ============================================ */
+.lifeplan-app .toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  max-width: min(92vw, 420px);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-hero);
+  z-index: 1000;
+  animation: lifeplan-rise-lg 320ms var(--ease);
+}
+
+.lifeplan-app .toast--success {
+  background: var(--color-sage);
+}
+
+.lifeplan-app .toast--error {
+  background: var(--color-terracotta);
+}
+
+.lifeplan-app .toast::before {
+  content: "✓";
+  font-weight: var(--fw-bold);
+}
+
+.lifeplan-app .toast--error::before {
+  content: "!";
+}
+
+/* ============================================
+   Dark mode foundation
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .lifeplan-app {
+    --color-bg: #16181c;
+    --color-bg-soft: #1d2025;
+    --color-white: #22262c;
+    --color-ink: #f1efe9;
+    --color-ink-soft: #c9c6bd;
+    --color-muted: #8b8678;
+    --color-border: #33373e;
+    --color-border-soft: #2a2e34;
+  }
+
+  .lifeplan-app .btn--secondary {
+    color: var(--color-ink);
+  }
+
+  .lifeplan-app .form-input,
+  .lifeplan-app .form-select {
+    color: var(--color-ink);
+  }
+
+  .lifeplan-app .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b8678' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
   }
 }
 
