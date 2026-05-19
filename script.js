@@ -1345,12 +1345,11 @@ const Calculator = {
   },
 
   calculateSpouseLaborIncome(age, spouseAge, spouseIncome, fireAge, spouseWorksAfterFire, startAge) {
-    // 配偶者が現在65歳以上なら既に退職
-    if (spouseAge >= 65) return 0;
+    // Calculate spouse's current age at this year
+    const currentSpouseAge = spouseAge + (age - startAge);
 
-    // FIRE達成時の配偶者の年齢
-    const yearsUntilFire = fireAge - startAge;
-    const spouseAgeAtFire = spouseAge + yearsUntilFire;
+    // If spouse has already reached 65, they're retired
+    if (currentSpouseAge >= 65) return 0;
 
     // ケース1: FIRE達成時に配偶者も退職（spouseWorksAfterFireがfalse）
     if (!spouseWorksAfterFire) {
@@ -1360,7 +1359,7 @@ const Calculator = {
     }
 
     // ケース2: 配偶者が継続就業
-    if (spouseWorksAfterFire && spouseAge < 65) {
+    if (spouseWorksAfterFire) {
       return spouseIncome;
     }
 
