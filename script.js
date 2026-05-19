@@ -632,6 +632,15 @@ const UI = {
         continue;
       }
 
+      // 条件付きフィールド：条件がfalseならスキップ（要素チェック前に判定）
+      if (field.conditional) {
+        const conditionValue = State.getInput(field.conditional);
+        if (!conditionValue) {
+          // 条件が満たされていないためスキップ
+          continue;
+        }
+      }
+
       const el = document.getElementById('form-' + field.id);
       if (!el) {
         console.warn(`Skipping field ${field.id} - element not found`);
@@ -682,15 +691,6 @@ const UI = {
           return false;
         }
         continue;
-      }
-
-      // 条件付きフィールド：条件がfalseならスキップ
-      if (field.conditional) {
-        const conditionValue = State.getInput(field.conditional);
-        if (!conditionValue) {
-          // 条件が満たされていないためスキップ
-          continue;
-        }
       }
 
       // チェックボックス型は特別な扱い（チェック値はもう取得済み）
