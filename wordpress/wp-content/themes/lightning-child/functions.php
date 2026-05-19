@@ -6,17 +6,20 @@
 function enqueue_lifeplan_app() {
   $page_id = 6;
   if ( is_page( $page_id ) ) {
+    $simulator_dir = dirname( dirname( dirname( dirname( dirname( dirname( __DIR__ ) ) ) ) ) . '/lifeplan-simulator';
+    $simulator_uri = site_url( '/lifeplan-simulator' );
+
     wp_enqueue_style(
       'lifeplan-app',
-      get_stylesheet_directory_uri() . '/assets/css/style-lifeplan-app.css',
+      $simulator_uri . '/style.css',
       [],
-      filemtime( get_stylesheet_directory() . '/assets/css/style-lifeplan-app.css' )
+      filemtime( $simulator_dir . '/style.css' )
     );
     wp_enqueue_script(
       'lifeplan-app',
-      get_stylesheet_directory_uri() . '/assets/js/script-lifeplan-app.js',
+      $simulator_uri . '/script.js',
       [],
-      filemtime( get_stylesheet_directory() . '/assets/js/script-lifeplan-app.js' ),
+      filemtime( $simulator_dir . '/script.js' ),
       true
     );
   }
