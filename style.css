@@ -580,8 +580,8 @@ legend {
 
 .result-hero {
   flex-shrink: 0;
-  max-height: 50vh;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  max-height: 45vh;
+  padding: var(--spacing-lg);
   background: linear-gradient(155deg, var(--color-navy-1), var(--color-navy-2));
   overflow-y: auto;
 }
@@ -616,8 +616,8 @@ legend {
   background: var(--color-white);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-sm);
 }
 
@@ -745,10 +745,10 @@ legend {
 .fire-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-lg) var(--spacing-md);
+  gap: var(--spacing-md);
   width: 100%;
-  margin-top: var(--spacing-2xl);
-  padding-top: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -763,7 +763,7 @@ legend {
 }
 
 .fire-detail-value {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-base);
   font-weight: var(--fw-bold);
   color: var(--color-white);
 }
@@ -774,9 +774,11 @@ legend {
 .chart-container {
   position: relative;
   margin-top: var(--spacing-md);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   background: var(--color-bg-soft);
   border-radius: var(--radius-md);
+  max-height: 260px;
+  overflow: hidden;
 }
 
 canvas {
@@ -842,19 +844,25 @@ canvas {
 
 .education-item {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
   background: var(--color-bg-soft);
   border-radius: var(--radius-md);
 }
 
 .education-item__year {
+  flex: 1;
+  min-width: 0;
   margin: 0;
+  font-size: var(--fs-sm);
 }
 
 .education-item__amount {
-  font-size: var(--fs-xl);
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
   color: var(--color-ink);
 }
