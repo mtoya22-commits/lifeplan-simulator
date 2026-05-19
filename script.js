@@ -638,7 +638,7 @@ const UI = {
         continue;
       }
 
-      const value = el.value;
+      const value = field.type === 'checkbox' ? (el.checked ? 'true' : '') : el.value;
 
       // 表示されている値をStateへ確実に保存（selectの初期値も拾う）
       State.setInput(field.id, value);
