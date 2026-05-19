@@ -391,7 +391,7 @@ const UI = {
       // 条件付きフィールドの初期表示制御
       if (field.conditional) {
         const conditionalValue = State.getInput(field.conditional);
-        if (field.type === 'checkbox' && !conditionalValue) {
+        if (!conditionalValue) {
           group.style.display = 'none';
         }
       }
