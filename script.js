@@ -684,6 +684,20 @@ const UI = {
         continue;
       }
 
+      // 条件付きフィールド：条件がfalseならスキップ
+      if (field.conditional) {
+        const conditionValue = State.getInput(field.conditional);
+        if (!conditionValue) {
+          // 条件が満たされていないためスキップ
+          continue;
+        }
+      }
+
+      // チェックボックス型は特別な扱い（チェック値はもう取得済み）
+      if (field.type === 'checkbox') {
+        continue;
+      }
+
       // 空値チェック（オプショナルフィールドは除く）
       if (value === null || value === undefined || String(value).trim() === '') {
         alert(`${field.label}を入力してください`);
