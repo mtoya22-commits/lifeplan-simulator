@@ -1,25 +1,15 @@
 <?php
-/**
- * Lightning Child Theme functions and definitions
- */
-
 function enqueue_lifeplan_app() {
-  $page_id = 6;
-  if ( is_page( $page_id ) ) {
-    $simulator_dir = dirname( dirname( dirname( dirname( dirname( dirname( __DIR__ ) ) ) ) ) . '/lifeplan-simulator';
-    $simulator_uri = site_url( '/lifeplan-simulator' );
-
+  if ( is_page( 6 ) ) {
     wp_enqueue_style(
       'lifeplan-app',
-      $simulator_uri . '/style.css',
-      [],
-      filemtime( $simulator_dir . '/style.css' )
+      site_url( '/lifeplan-simulator/style.css' )
     );
     wp_enqueue_script(
       'lifeplan-app',
-      $simulator_uri . '/script.js',
-      [],
-      filemtime( $simulator_dir . '/script.js' ),
+      site_url( '/lifeplan-simulator/script.js' ),
+      array(),
+      false,
       true
     );
   }
