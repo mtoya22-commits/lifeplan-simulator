@@ -323,6 +323,13 @@ const UI = {
     document.getElementById('download-btn').addEventListener('click', () => {
       this.downloadResults();
     });
+
+    document.getElementById('result-modal').querySelector('.result-modal__close').addEventListener('click', () => {
+      this.closeModal();
+    });
+    document.getElementById('result-modal').querySelector('.result-modal__backdrop').addEventListener('click', () => {
+      this.closeModal();
+    });
   },
 
   // スクロールを先頭へ。入力画面は内部スクロール器(.input-scroll)を、
@@ -897,8 +904,8 @@ const UI = {
 
     const html = educationCosts
       .map(
-        (item) => `
-      <div class="education-item">
+        (item, index) => `
+      <div class="education-item" role="button" tabindex="0" data-index="${index}">
         <div class="education-item__year">${item.childIndex}番目のお子さん ${item.stage}</div>
         <div class="education-item__amount">${item.cost}万円</div>
       </div>
@@ -906,6 +913,17 @@ const UI = {
       )
       .join('');
     container.innerHTML = html;
+
+    document.querySelectorAll('#education-summary .education-item').forEach((el, index) => {
+      el.addEventListener('click', () => {
+        this.openEducationModal(educationCosts[index].childIndex + '番目 ' + educationCosts[index].stage, educationCosts[index].cost + '万円');
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          this.openEducationModal(educationCosts[index].childIndex + '番目 ' + educationCosts[index].stage, educationCosts[index].cost + '万円');
+        }
+      });
+    });
   },
 
   renderTimeline(lifeEvents) {
@@ -917,8 +935,8 @@ const UI = {
 
     const html = lifeEvents
       .map(
-        (event) => `
-      <div class="timeline-item">
+        (event, index) => `
+      <div class="timeline-item" role="button" tabindex="0" data-index="${index}">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-label">${event.age}歳 / ${event.year}年</div>
@@ -929,6 +947,17 @@ const UI = {
       )
       .join('');
     container.innerHTML = html;
+
+    document.querySelectorAll('#timeline .timeline-item').forEach((el, index) => {
+      el.addEventListener('click', () => {
+        this.openTimelineModal(index, lifeEvents[index]);
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          this.openTimelineModal(index, lifeEvents[index]);
+        }
+      });
+    });
   },
 
   renderCashflowTable(cashflow) {
@@ -1364,6 +1393,35 @@ const Calculator = {
     }
 
     return 0;
+  },
+
+  openTimelineModal(index, event) {
+    if (!event) return;
+
+    const modal = document.getElementById('result-modal');
+    const title = modal.querySelector('#modal-title');
+    const body = modal.querySelector('.result-modal__body');
+
+    title.textContent = event.label;
+    body.innerHTML = `<p>${event.age}歳（${event.year}年）のイベントです。</p>`;
+
+    modal.setAttribute('aria-hidden', 'false');
+  },
+
+  openEducationModal(year, amount) {
+    const modal = document.getElementById('result-modal');
+    const title = modal.querySelector('#modal-title');
+    const body = modal.querySelector('.result-modal__body');
+
+    title.textContent = `${year}`;
+    body.innerHTML = `<p><strong>${Format.currency(amount)}</strong></p>`;
+
+    modal.setAttribute('aria-hidden', 'false');
+  },
+
+  closeModal() {
+    const modal = document.getElementById('result-modal');
+    modal.setAttribute('aria-hidden', 'true');
   },
 };
 
