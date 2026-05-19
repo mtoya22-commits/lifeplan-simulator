@@ -120,28 +120,24 @@ const FormSteps = {
       rationale: '将来の見通しは、いまの年齢・収入・資産から組み立てます。',
       fields: [
         { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35' },
-        { id: 'income', label: '世帯年収', type: 'number', min: 0, unit: '万円', placeholder: '500' },
+        { id: 'income', label: '世帯年収（税込）', type: 'number', min: 0, unit: '万円', placeholder: '500' },
+        { id: 'takehomeRate', label: '手取り率（%）', type: 'number', min: 50, max: 100, step: 1, unit: '%', placeholder: '80', info: 'わからない場合は80%を目安に' },
         { id: 'assets', label: '現在の資産', type: 'number', min: 0, unit: '万円', placeholder: '300' },
+        { id: 'cashRatio', label: '現金比率（%）', type: 'number', min: 0, max: 100, unit: '%', placeholder: '60', info: 'スキップ可能' },
       ],
     },
     {
-      title: '家族',
+      title: '配偶者情報',
       question: 'ご家族について教えてください',
-      rationale: '教育費は時期と人数で変わります。配偶者の就業状況も今後の資産形成を大きく左右します。',
+      rationale: '配偶者の年齢・収入・働き方は、今後の資産形成を大きく左右します。',
       fields: [
-        {
-          id: 'childCount',
-          label: 'お子さんの人数',
-          type: 'select',
-          options: { 0: 'いない', 1: '1人', 2: '2人', 3: '3人以上' },
-        },
         {
           id: 'hasSpouse',
           label: '配偶者がいる',
           type: 'checkbox',
         },
-        { id: 'spouseAge', label: '配偶者の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '32', conditional: 'hasSpouse' },
-        { id: 'spouseIncome', label: '配偶者の年収', type: 'number', min: 0, unit: '万円', placeholder: '350', conditional: 'hasSpouse' },
+        { id: 'spouseAge', label: '配偶者の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '32', conditional: 'hasSpouse', required: 'hasSpouse' },
+        { id: 'spouseIncome', label: '配偶者の年収', type: 'number', min: 0, unit: '万円', placeholder: '350', conditional: 'hasSpouse', info: 'スキップ可能' },
         {
           id: 'spouseWorksAfterFire',
           label: 'FIRE達成後も配偶者は就業継続',
@@ -153,21 +149,22 @@ const FormSteps = {
     {
       title: '住まい',
       question: 'いまの住まいについて教えてください',
-      rationale: '住居費は家計の大きな固定費です。毎月の負担感を見ます。',
+      rationale: '住宅費は家計の大きな固定費です。将来の負担を見ます。',
       fields: [
         {
           id: 'housingType',
           label: '住まいのタイプ',
           type: 'select',
-          options: { rent: '賃貸', own: '持ち家', owned: '住宅ローン返済中' },
+          options: { rent: '賃貸', own: '持ち家（ローン完済）', owned: '住宅ローン返済中' },
         },
-        { id: 'monthlyHousing', label: '月額住宅費', type: 'number', min: 0, unit: '万円', placeholder: '10' },
+        { id: 'monthlyHousing', label: '月額住宅費', type: 'number', min: 0, unit: '万円', placeholder: '10', info: 'スキップ可能' },
       ],
     },
     {
       title: '住宅ローン',
       question: '住宅ローンの条件を教えてください',
-      rationale: '金利タイプと残り年数で、将来の支出の形が変わります。',
+      rationale: '金利と残り期間で、将来の支出の形が変わります。',
+      conditional: 'owned',
       fields: [
         {
           id: 'loanType',
@@ -175,8 +172,43 @@ const FormSteps = {
           type: 'select',
           options: { fixed: '全期間固定', variable: '変動金利', hybrid: '固定期間終了後変動' },
         },
-        { id: 'loanRate', label: '金利', type: 'number', min: 0, max: 10, step: 0.1, unit: '%', placeholder: '2.5' },
-        { id: 'loanYears', label: '返済年数', type: 'number', min: 1, max: 50, unit: '年', placeholder: '35' },
+        { id: 'loanRate', label: '金利', type: 'number', min: 0, max: 10, step: 0.1, unit: '%', placeholder: '2.5', info: 'スキップ可能' },
+        { id: 'loanYears', label: '残年数', type: 'number', min: 1, max: 50, unit: '年', placeholder: '30', info: 'スキップ可能' },
+      ],
+    },
+    {
+      title: '子ども情報',
+      question: 'お子さんについて教えてください',
+      rationale: '人数と年齢で、教育費のピークを見通します。',
+      fields: [
+        {
+          id: 'childCount',
+          label: 'お子さんの人数',
+          type: 'select',
+          options: { 0: 'いない', 1: '1人', 2: '2人', 3: '3人', 4: '4人以上' },
+        },
+        {
+          id: 'children',
+          label: 'お子さんの詳細情報',
+          type: 'custom',
+          render: 'renderChildrenForm',
+          conditional: 'childCount',
+          conditionValue: (val) => val > 0,
+        },
+      ],
+    },
+    {
+      title: '教育の方針',
+      question: 'お子さんの教育方針を教えてください',
+      rationale: '公立か私立かで、教育費が大きく変わります。',
+      fields: [
+        {
+          id: 'educationType',
+          label: '教育方針',
+          type: 'select',
+          options: { public: '公立中心', mixed: '一部私立', private: '私立重視' },
+          info: 'スキップ可能（公立中心で計算）',
+        },
       ],
     },
     {
@@ -184,44 +216,18 @@ const FormSteps = {
       question: 'どのくらい投資にまわせそうですか',
       rationale: '毎月の積立と想定利回りが、将来の資産の伸びを決めます。',
       fields: [
-        { id: 'monthlyInvestment', label: '毎月の投資額', type: 'number', min: 0, unit: '万円', placeholder: '5' },
+        { id: 'monthlyInvestment', label: '毎月の投資額', type: 'number', min: 0, unit: '万円', placeholder: '5', info: 'スキップ可能' },
         {
           id: 'returnRate',
           label: '想定年利',
           type: 'select',
           options: { '0.03': '3%（保守的）', '0.04': '4%（標準）', '0.05': '5%（積極的）', 'custom': 'カスタム' },
         },
-        { id: 'returnRateCustom', label: 'カスタム年利', type: 'number', min: 0, max: 20, step: 0.1, unit: '%', placeholder: '4' },
+        { id: 'returnRateCustom', label: 'カスタム年利', type: 'number', min: 0, max: 20, step: 0.1, unit: '%', placeholder: '4', conditional: 'returnRateCustom' },
       ],
     },
     {
-      title: '教育の方針',
-      question: 'お子さんの教育はどう考えていますか',
-      rationale: '公立か私立かで、教育費の山の高さが大きく変わります。',
-      fields: [
-        {
-          id: 'educationType',
-          label: '教育方針',
-          type: 'select',
-          options: { public: '公立中心', mixed: '一部私立', private: '私立重視' },
-        },
-      ],
-    },
-    {
-      title: 'お子さんごと',
-      question: 'お子さんお一人ずつ教えてください',
-      rationale: '年齢と進学先がわかると、教育費の時期をより正確に描けます。',
-      fields: [
-        {
-          id: 'children',
-          label: 'お子さんの情報を設定（年齢、進学予定）',
-          type: 'custom',
-          render: 'renderChildrenForm',
-        },
-      ],
-    },
-    {
-      title: 'これから',
+      title: 'FIRE計画',
       question: 'どんなふうに働き方を変えたいですか',
       rationale: '目標年齢とFIREのかたちで、必要な準備が変わります。',
       fields: [
@@ -232,7 +238,7 @@ const FormSteps = {
           type: 'select',
           options: { full: '完全FIRE（労働なし）', side: 'サイドFIRE（月収あり）' },
         },
-        { id: 'fireMonthlyIncome', label: 'FIRE後の月収（サイドFIREの場合）', type: 'number', min: 0, unit: '万円', placeholder: '10' },
+        { id: 'fireMonthlyIncome', label: 'FIRE後の月収（サイドFIREの場合）', type: 'number', min: 0, unit: '万円', placeholder: '10', conditional: 'fireType', conditionValue: (val) => val === 'side' },
       ],
     },
   ],
@@ -242,7 +248,6 @@ const FormSteps = {
 // Format Helpers
 // ============================================
 const Format = {
-  // 万円を読みやすい文字列に（1万円未満四捨五入、1億円以上は「億」表記）
   money(man) {
     const v = Math.round(Number(man) || 0);
     if (Math.abs(v) >= 10000) {
@@ -250,6 +255,10 @@ const Format = {
       return oku.toFixed(oku % 1 === 0 ? 0 : 1) + '億円';
     }
     return v.toLocaleString('ja-JP') + '万円';
+  },
+
+  currency(man) {
+    return this.money(man);
   },
 };
 
@@ -443,14 +452,19 @@ const UI = {
         });
         input.addEventListener('change', (e) => {
           State.setInput(field.id, e.target.value);
-          // 年利がカスタムに変わったら、カスタム入力フィールドを表示・非表示に
-          if (field.id === 'returnRate') {
-            UI.updateReturnRateVisibility();
-          }
+          // 年利やFIREタイプ変更時に条件付きフィールドを更新
+          UI.updateConditionalFields(currentStep.fields, form);
         });
 
         group.appendChild(label);
         group.appendChild(input);
+
+        if (field.info) {
+          const info = document.createElement('small');
+          info.className = 'form-hint';
+          info.textContent = field.info;
+          group.appendChild(info);
+        }
       } else {
         // テキスト/数値入力
         label = document.createElement('label');
@@ -473,9 +487,19 @@ const UI = {
           State.setInput(field.id, e.target.value);
         });
 
-        // カスタム年利フィールドはデフォルト非表示
-        if (field.id === 'returnRateCustom') {
-          group.id = 'form-group-returnRateCustom';
+        // 条件付きフィールド用ID設定
+        group.id = 'form-group-' + field.id;
+
+        // 条件付きフィールドは初期状態で非表示
+        if (field.conditional) {
+          const condValue = State.getInput(field.conditional);
+          let shouldShow = false;
+          if (typeof field.conditionValue === 'function') {
+            shouldShow = field.conditionValue(condValue);
+          } else {
+            shouldShow = condValue !== undefined && condValue !== '' && condValue !== 'false';
+          }
+          group.style.display = shouldShow ? 'flex' : 'none';
         }
 
         if (field.unit) {
@@ -496,6 +520,13 @@ const UI = {
         } else {
           group.appendChild(label);
           group.appendChild(input);
+        }
+
+        if (field.info) {
+          const info = document.createElement('small');
+          info.className = 'form-hint';
+          info.textContent = field.info;
+          group.appendChild(info);
         }
       }
 
@@ -525,10 +556,28 @@ const UI = {
     fields.forEach((field) => {
       if (field.conditional) {
         const group = document.getElementById('form-group-' + field.id);
-        if (group) {
-          const conditionValue = State.getInput(field.conditional);
-          group.style.display = conditionValue ? 'flex' : 'none';
+        if (!group) return;
+
+        const condValue = State.getInput(field.conditional);
+        let shouldShow = false;
+
+        if (typeof field.conditionValue === 'function') {
+          shouldShow = field.conditionValue(condValue);
+        } else {
+          shouldShow = condValue !== undefined && condValue !== '' && condValue !== 'false';
         }
+
+        group.style.display = shouldShow ? 'flex' : 'none';
+
+        // カスタム年利など複数の条件をサポート
+        if (field.id === 'returnRateCustom' && State.getInput('returnRate') === 'custom') {
+          group.style.display = 'flex';
+        } else if (field.id === 'fireMonthlyIncome' && State.getInput('fireType') === 'side') {
+          group.style.display = 'flex';
+        }
+      }
+    });
+  },
       }
     });
   },
@@ -621,7 +670,16 @@ const UI = {
     const currentStep = steps[State.currentStep];
 
     for (const field of currentStep.fields) {
-      // カスタムフィールドはスキップ（独自のバリデーション）
+      // ステップ自体の条件チェック
+      if (currentStep.conditional) {
+        const condValue = State.getInput(currentStep.conditional);
+        const isConditionMet = currentStep.conditional === 'childCount'
+          ? parseInt(condValue) > 0
+          : condValue === 'owned';
+        if (!isConditionMet) continue;
+      }
+
+      // カスタムフィールドは独自バリデーション
       if (field.type === 'custom') {
         if (field.id === 'children') {
           const childCount = parseInt(State.getInput('childCount'), 10) || 0;
@@ -639,11 +697,18 @@ const UI = {
         continue;
       }
 
-      // 条件付きフィールド：条件がfalseならスキップ（要素チェック前に判定）
+      // フィールド条件チェック
       if (field.conditional) {
-        const conditionValue = State.getInput(field.conditional);
-        if (!conditionValue) {
-          // 条件が満たされていないためスキップ
+        const condValue = State.getInput(field.conditional);
+        let isFieldConditionMet = false;
+
+        if (typeof field.conditionValue === 'function') {
+          isFieldConditionMet = field.conditionValue(condValue);
+        } else {
+          isFieldConditionMet = condValue !== undefined && condValue !== '' && condValue !== 'false';
+        }
+
+        if (!isFieldConditionMet) {
           continue;
         }
       }
@@ -656,26 +721,20 @@ const UI = {
 
       const value = field.type === 'checkbox' ? (el.checked ? 'true' : '') : el.value;
 
-      // 表示されている値をStateへ確実に保存（selectの初期値も拾う）
-      State.setInput(field.id, value);
+      // 必須フィールド（requiredフラグまたはconditionalで表示されているフィールド）
+      const isRequired = field.required || (field.conditional && State.getInput(field.conditional));
+      if (isRequired && (!value || String(value).trim() === '')) {
+        alert(`${field.label}を入力してください`);
+        el.focus();
+        return false;
+      }
 
-      // カスタム年利の場合のみ、カスタム値が入っていることを確認
-      // returnRateCustom フィールド自体はスキップ（独立した入力ではなく、returnRateがcustomの時のみチェック）
-      if (field.id === 'returnRate') {
-        if (value === 'custom') {
-          const customEl = document.getElementById('form-returnRateCustom');
-          if (customEl) {
-            const customValue = customEl.value;
-            if (!customValue || String(customValue).trim() === '') {
-              alert('カスタム年利を入力してください');
-              customEl.focus();
-              return false;
-            }
-            State.setInput('returnRateCustom', customValue);
-          } else {
-            alert('カスタム年利フィールドが見つかりません');
-            return false;
-          }
+      // 値を保存
+      State.setInput(field.id, value);
+    }
+
+    return true;
+  },
         }
         // customでない場合は何もしない（デフォルト値はOK）
       }
