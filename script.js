@@ -336,7 +336,7 @@ const UI = {
     if (active) {
       active.scrollTop = 0;
     }
-    document.querySelectorAll('.input-scroll, .result-details, .result-hero').forEach((el) => {
+    document.querySelectorAll('.input-scroll, #result-screen').forEach((el) => {
       el.scrollTop = 0;
     });
   },

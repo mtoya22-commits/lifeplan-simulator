@@ -571,19 +571,16 @@ legend {
    display:none (from .screen) and never adds body height — otherwise
    it sits below the input screen and the body scrolls into it. */
 #result-screen.screen--active {
-  display: flex;
-  flex-direction: column;
+  display: block;
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .result-hero {
-  flex-shrink: 0;
-  max-height: 45vh;
   padding: var(--spacing-lg);
   background: linear-gradient(155deg, var(--color-navy-1), var(--color-navy-2));
-  overflow-y: auto;
 }
 
 .result-hero .screen-header {
@@ -599,9 +596,7 @@ legend {
 }
 
 .result-details {
-  flex: 1;
   padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-2xl);
-  overflow-y: auto;
   background: var(--color-bg);
 }
 
@@ -777,8 +772,6 @@ legend {
   padding: var(--spacing-md);
   background: var(--color-bg-soft);
   border-radius: var(--radius-md);
-  max-height: 260px;
-  overflow: hidden;
 }
 
 canvas {
