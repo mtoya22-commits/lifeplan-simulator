@@ -127,13 +127,26 @@ const FormSteps = {
     {
       title: '家族',
       question: 'ご家族について教えてください',
-      rationale: '教育費は時期と人数で変わります。まずは人数から伺います。',
+      rationale: '教育費は時期と人数で変わります。配偶者の就業状況も今後の資産形成を大きく左右します。',
       fields: [
         {
           id: 'childCount',
           label: 'お子さんの人数',
           type: 'select',
           options: { 0: 'いない', 1: '1人', 2: '2人', 3: '3人以上' },
+        },
+        {
+          id: 'hasSpouse',
+          label: '配偶者がいる',
+          type: 'checkbox',
+        },
+        { id: 'spouseAge', label: '配偶者の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '32', conditional: 'hasSpouse' },
+        { id: 'spouseIncome', label: '配偶者の年収', type: 'number', min: 0, unit: '万円', placeholder: '350', conditional: 'hasSpouse' },
+        {
+          id: 'spouseWorksAfterFire',
+          label: 'FIRE達成後も配偶者は就業継続',
+          type: 'checkbox',
+          conditional: 'hasSpouse',
         },
       ],
     },
@@ -373,15 +386,45 @@ const UI = {
 
       const group = document.createElement('div');
       group.className = 'form-group';
+      group.id = 'form-group-' + field.id;
 
-      const label = document.createElement('label');
-      label.className = 'form-label';
-      label.textContent = field.label;
+      // 条件付きフィールドの初期表示制御
+      if (field.conditional) {
+        const conditionalValue = State.getInput(field.conditional);
+        if (field.type === 'checkbox' && !conditionalValue) {
+          group.style.display = 'none';
+        }
+      }
 
-      let input;
-      if (field.type === 'select') {
+      let label, input;
+
+      if (field.type === 'checkbox') {
+        // チェックボックスの場合
+        input = document.createElement('input');
+        input.className = 'form-checkbox';
+        input.type = 'checkbox';
+        input.id = 'form-' + field.id;
+        input.checked = State.getInput(field.id) ? true : false;
+        input.addEventListener('change', (e) => {
+          State.setInput(field.id, e.target.checked ? 'true' : '');
+          // チェックボックスの変更時に条件付きフィールドを表示・非表示に
+          UI.updateConditionalFields(currentStep.fields, form);
+        });
+
+        label = document.createElement('label');
+        label.className = 'form-label form-label--checkbox';
+        label.htmlFor = 'form-' + field.id;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(field.label));
+        group.appendChild(label);
+      } else if (field.type === 'select') {
+        label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = field.label;
+
         input = document.createElement('select');
         input.className = 'form-select';
+        input.id = 'form-' + field.id;
         Object.entries(field.options).forEach(([value, text]) => {
           const option = document.createElement('option');
           option.value = value;
@@ -398,10 +441,19 @@ const UI = {
             UI.updateReturnRateVisibility();
           }
         });
+
+        group.appendChild(label);
+        group.appendChild(input);
       } else {
+        // テキスト/数値入力
+        label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = field.label;
+
         input = document.createElement('input');
         input.className = 'form-input';
         input.type = field.type;
+        input.id = 'form-' + field.id;
         input.min = field.min || 0;
         if (field.max) input.max = field.max;
         if (field.step) input.step = field.step;
@@ -413,37 +465,34 @@ const UI = {
         input.addEventListener('input', (e) => {
           State.setInput(field.id, e.target.value);
         });
+
+        // カスタム年利フィールドはデフォルト非表示
+        if (field.id === 'returnRateCustom') {
+          group.id = 'form-group-returnRateCustom';
+        }
+
+        if (field.unit) {
+          const wrapper = document.createElement('div');
+          wrapper.style.position = 'relative';
+          wrapper.appendChild(input);
+          const unitLabel = document.createElement('small');
+          unitLabel.style.position = 'absolute';
+          unitLabel.style.right = 'var(--spacing-md)';
+          unitLabel.style.top = '50%';
+          unitLabel.style.transform = 'translateY(-50%)';
+          unitLabel.textContent = field.unit;
+          unitLabel.style.pointerEvents = 'none';
+          wrapper.appendChild(unitLabel);
+          input.style.paddingRight = '3rem';
+          group.appendChild(label);
+          group.appendChild(wrapper);
+        } else {
+          group.appendChild(label);
+          group.appendChild(input);
+        }
       }
 
-      input.id = 'form-' + field.id;
-
-      // カスタム年利フィールドはデフォルト非表示
-      if (field.id === 'returnRateCustom') {
-        group.id = 'form-group-returnRateCustom';
-        // renderInputScreenの終了後に表示切り替えするため、ここでは非表示にしない（後処理で制御）
-      }
-
-      if (field.unit && field.type !== 'select') {
-        const wrapper = document.createElement('div');
-        wrapper.style.position = 'relative';
-        wrapper.appendChild(input);
-        const unitLabel = document.createElement('small');
-        unitLabel.style.position = 'absolute';
-        unitLabel.style.right = 'var(--spacing-md)';
-        unitLabel.style.top = '50%';
-        unitLabel.style.transform = 'translateY(-50%)';
-        unitLabel.textContent = field.unit;
-        unitLabel.style.pointerEvents = 'none';
-        wrapper.appendChild(unitLabel);
-        input.style.paddingRight = '3rem';
-        group.appendChild(label);
-        group.appendChild(wrapper);
-        form.appendChild(group);
-      } else {
-        group.appendChild(label);
-        group.appendChild(input);
-        form.appendChild(group);
-      }
+      form.appendChild(group);
     });
 
     // Update button states
@@ -463,6 +512,18 @@ const UI = {
     if (customGroup) {
       customGroup.style.display = State.getInput('returnRate') === 'custom' ? 'flex' : 'none';
     }
+  },
+
+  updateConditionalFields(fields, form) {
+    fields.forEach((field) => {
+      if (field.conditional) {
+        const group = document.getElementById('form-group-' + field.id);
+        if (group) {
+          const conditionValue = State.getInput(field.conditional);
+          group.style.display = conditionValue ? 'flex' : 'none';
+        }
+      }
+    });
   },
 
   renderChildrenForm(form) {
@@ -864,34 +925,70 @@ const UI = {
     }
 
     const visibleRows = cashflow.slice(0, 10);
-    const tableHTML = `
-      <table class="cashflow-table">
-        <thead>
-          <tr>
-            <th>年齢</th>
-            <th>年収</th>
-            <th>生活費</th>
-            <th>資産額</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${visibleRows
-            .map(
-              (row) => `
+    // 配偶者情報を持つ行があるかチェック
+    const hasSpouseData = visibleRows.some(row => row.spouseIncome !== undefined);
+
+    let tableHTML;
+    if (hasSpouseData) {
+      tableHTML = `
+        <table class="cashflow-table">
+          <thead>
             <tr>
-              <td>${row.age}歳</td>
-              <td>${row.income.toLocaleString('ja-JP')}万</td>
-              <td>${row.expenses.toLocaleString('ja-JP')}万</td>
-              <td>${Format.money(row.assets)}</td>
+              <th>年齢</th>
+              <th>本人年収</th>
+              <th>配偶者年収</th>
+              <th>合計年収</th>
+              <th>生活費</th>
+              <th>資産額</th>
             </tr>
-          `
-            )
-            .join('')}
-        </tbody>
-      </table>
-      ${cashflow.length > 10 ? '<p style="color: var(--color-medium-gray); font-size: var(--font-size-sm); margin-top: var(--spacing-md);">以降のデータは省略しています</p>' : ''}
-    `;
-    container.innerHTML = tableHTML;
+          </thead>
+          <tbody>
+            ${visibleRows
+              .map(
+                (row) => `
+              <tr>
+                <td>${row.age}歳</td>
+                <td>${row.myIncome.toLocaleString('ja-JP')}万</td>
+                <td>${row.spouseIncome.toLocaleString('ja-JP')}万</td>
+                <td>${row.income.toLocaleString('ja-JP')}万</td>
+                <td>${row.expenses.toLocaleString('ja-JP')}万</td>
+                <td>${Format.money(row.assets)}</td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+      `;
+    } else {
+      tableHTML = `
+        <table class="cashflow-table">
+          <thead>
+            <tr>
+              <th>年齢</th>
+              <th>年収</th>
+              <th>生活費</th>
+              <th>資産額</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${visibleRows
+              .map(
+                (row) => `
+              <tr>
+                <td>${row.age}歳</td>
+                <td>${row.income.toLocaleString('ja-JP')}万</td>
+                <td>${row.expenses.toLocaleString('ja-JP')}万</td>
+                <td>${Format.money(row.assets)}</td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+      `;
+    }
+    container.innerHTML = tableHTML + (cashflow.length > 10 ? '<p style="color: var(--color-medium-gray); font-size: var(--font-size-sm); margin-top: var(--spacing-md);">以降のデータは省略しています</p>' : '');
   },
 
   downloadResults() {
@@ -948,6 +1045,12 @@ const Calculator = {
     const loanRate = parseFloat(inputs.loanRate) || 2.5; // %
     const loanYears = parseInt(inputs.loanYears, 10) || 35;
 
+    // 配偶者情報
+    const hasSpouse = inputs.hasSpouse === 'true';
+    const spouseAge = parseInt(inputs.spouseAge, 10) || startAge;
+    const spouseIncome = parseInt(inputs.spouseIncome, 10) || 0;
+    const spouseWorksAfterFire = inputs.spouseWorksAfterFire === 'true';
+
     // 投資年利：選択値またはカスタム値
     let returnRate = 0.04; // デフォルト
     if (inputs.returnRate && inputs.returnRate !== 'custom') {
@@ -987,16 +1090,23 @@ const Calculator = {
     for (let age = startAge; age <= lifeEnd; age++) {
       const yr = age - startAge;
 
-      // 労働収入（統一式：完全FIRE=0／サイドFIRE=月収×12）
-      let laborIncome;
+      // 本人の労働収入（統一式：完全FIRE=0／サイドFIRE=月収×12）
+      let myLaborIncome;
       if (age < fireAge) {
-        laborIncome = income * Math.pow(1 + incomeGrowth, yr);
+        myLaborIncome = income * Math.pow(1 + incomeGrowth, yr);
       } else if (fireType === 'side') {
-        laborIncome = fireMonthlyIncome * 12;
+        myLaborIncome = fireMonthlyIncome * 12;
       } else {
-        laborIncome = 0;
+        myLaborIncome = 0;
       }
 
+      // 配偶者の労働収入
+      let spouseLaborIncomeAmount = 0;
+      if (hasSpouse) {
+        spouseLaborIncomeAmount = this.calculateSpouseLaborIncome(age, spouseAge, spouseIncome, fireAge, spouseWorksAfterFire, startAge);
+      }
+
+      const laborIncome = myLaborIncome + spouseLaborIncomeAmount;
       const tax = laborIncome * taxRate;
 
       const inflationFactor = Math.pow(1 + inflationRate, yr);
@@ -1031,6 +1141,8 @@ const Calculator = {
         cashflow.push({
           age,
           income: Math.round(laborIncome),
+          myIncome: Math.round(myLaborIncome),
+          spouseIncome: Math.round(spouseLaborIncomeAmount),
           expenses: Math.round(living),
           assets: Math.round(Math.max(0, assets)),
         });
@@ -1069,7 +1181,7 @@ const Calculator = {
       status,
       assetTimeline,
       educationCosts: this.calculateEducationCosts(childCount, educationType),
-      lifeEvents: this.generateLifeEvents(startAge, fireAge, childCount, educationType),
+      lifeEvents: this.generateLifeEvents(startAge, fireAge, childCount, educationType, hasSpouse, spouseAge, spouseWorksAfterFire),
       cashflow,
     };
   },
@@ -1171,7 +1283,7 @@ const Calculator = {
     return result;
   },
 
-  generateLifeEvents(startAge, fireAge, childCount, educationType) {
+  generateLifeEvents(startAge, fireAge, childCount, educationType, hasSpouse, spouseAge, spouseWorksAfterFire) {
     const events = [];
 
     events.push({
@@ -1179,6 +1291,15 @@ const Calculator = {
       year: new Date().getFullYear() + (fireAge - startAge),
       label: 'FIRE達成予定',
     });
+
+    // 配偶者退職イベント
+    if (hasSpouse && !spouseWorksAfterFire) {
+      events.push({
+        age: fireAge,
+        year: new Date().getFullYear() + (fireAge - startAge),
+        label: '配偶者が退職',
+      });
+    }
 
     if (childCount > 0) {
       events.push({
@@ -1207,6 +1328,29 @@ const Calculator = {
 
     events.sort((a, b) => a.age - b.age);
     return events;
+  },
+
+  calculateSpouseLaborIncome(age, spouseAge, spouseIncome, fireAge, spouseWorksAfterFire, startAge) {
+    // 配偶者が現在65歳以上なら既に退職
+    if (spouseAge >= 65) return 0;
+
+    // FIRE達成時の配偶者の年齢
+    const yearsUntilFire = fireAge - startAge;
+    const spouseAgeAtFire = spouseAge + yearsUntilFire;
+
+    // ケース1: FIRE達成時に配偶者も退職（spouseWorksAfterFireがfalse）
+    if (!spouseWorksAfterFire) {
+      if (age < fireAge) return spouseIncome;
+      // FIRE達成後は収入なし
+      return 0;
+    }
+
+    // ケース2: 配偶者が継続就業
+    if (spouseWorksAfterFire && spouseAge < 65) {
+      return spouseIncome;
+    }
+
+    return 0;
   },
 };
 

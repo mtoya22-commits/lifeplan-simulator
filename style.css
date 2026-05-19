@@ -462,6 +462,20 @@ button {
   color: var(--color-muted);
 }
 
+.form-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-gold);
+}
+
+.form-label--checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-direction: row;
+}
+
 fieldset {
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-md) !important;
