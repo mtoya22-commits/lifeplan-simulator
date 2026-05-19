@@ -461,6 +461,68 @@ button {
 .form-hint {
   font-size: var(--fs-xs);
   color: var(--color-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.form-label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.form-label-row .form-label {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.btn-hint {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-hint:hover {
+  background: var(--color-bg-soft);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.btn-hint--inline {
+  margin-left: auto;
+}
+
+.btn-recommend {
+  padding: 4px 12px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold-deep);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.btn-recommend:hover {
+  background: rgba(201, 168, 118, 0.1);
+  border-color: var(--color-gold-deep);
 }
 
 .form-checkbox {

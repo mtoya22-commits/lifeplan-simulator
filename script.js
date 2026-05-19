@@ -80,9 +80,9 @@ const FormSteps = {
       question: 'まず、いまのあなたについて教えてください',
       rationale: '将来の見通しは、いまの年齢・収入・資産から組み立てます。',
       fields: [
-        { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35' },
-        { id: 'income', label: '世帯年収', type: 'number', min: 0, unit: '万円', placeholder: '500' },
-        { id: 'assets', label: '現在の資産', type: 'number', min: 0, unit: '万円', placeholder: '300' },
+        { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35', hint: 'シミュレーション開始時点での満年齢を入力してください。' },
+        { id: 'income', label: '世帯年収', type: 'number', min: 0, unit: '万円', placeholder: '500', hint: '源泉徴収票の「支払金額」を参考にしてください。夫婦共働きの場合は合算してください。' },
+        { id: 'assets', label: '現在の資産', type: 'number', min: 0, unit: '万円', placeholder: '300', hint: '銀行・証券口座など、すべての金融資産を合計してください。' },
       ],
     },
     {
@@ -119,11 +119,11 @@ const FormSteps = {
       question: 'まず、いまのあなたについて教えてください',
       rationale: '将来の見通しは、いまの年齢・収入・資産から組み立てます。',
       fields: [
-        { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35' },
-        { id: 'income', label: '世帯年収（税込）', type: 'number', min: 0, unit: '万円', placeholder: '500' },
-        { id: 'takehomeRate', label: '手取り率（%）', type: 'number', min: 50, max: 100, step: 1, unit: '%', placeholder: '80', info: 'わからない場合は80%を目安に' },
-        { id: 'assets', label: '現在の資産', type: 'number', min: 0, unit: '万円', placeholder: '300' },
-        { id: 'cashRatio', label: '現金比率（%）', type: 'number', min: 0, max: 100, unit: '%', placeholder: '60', info: 'スキップ可能' },
+        { id: 'age', label: '現在の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '35', hint: 'シミュレーション開始時点での満年齢を入力してください。' },
+        { id: 'income', label: '世帯年収（税込）', type: 'number', min: 0, unit: '万円', placeholder: '500', hint: '源泉徴収票の「支払金額」を参考にしてください。夫婦共働きの場合は合算してください。' },
+        { id: 'takehomeRate', label: '手取り率（%）', type: 'number', min: 50, max: 100, step: 1, unit: '%', placeholder: '80', info: '給与明細や家計簿から手元に残る割合を推定してください。', recommend: 80, recommendLabel: 'おすすめ: 80%', hint: 'サラリーマンの場合はおすすめの80%を目安に。給与明細から実際の手取り率を計算することもできます。' },
+        { id: 'assets', label: '現在の資産', type: 'number', min: 0, unit: '万円', placeholder: '300', hint: '銀行・証券口座・保険など、すべての金融資産を合計してください。' },
+        { id: 'cashRatio', label: '現金比率（%）', type: 'number', min: 0, max: 100, unit: '%', placeholder: '60', info: 'スキップ可能', recommend: 50, recommendLabel: 'おすすめ: 50%', hint: '資産全体に占める現金（銀行預金）の比率です。分からなければおすすめを使用できます。' },
       ],
     },
     {
@@ -135,14 +135,16 @@ const FormSteps = {
           id: 'hasSpouse',
           label: '配偶者がいる',
           type: 'checkbox',
+          hint: 'パートナーの有無をチェックしてください。配偶者がいる場合、詳細情報を入力できます。',
         },
-        { id: 'spouseAge', label: '配偶者の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '32', conditional: 'hasSpouse', required: 'hasSpouse' },
-        { id: 'spouseIncome', label: '配偶者の年収', type: 'number', min: 0, unit: '万円', placeholder: '350', conditional: 'hasSpouse', info: 'スキップ可能' },
+        { id: 'spouseAge', label: '配偶者の年齢', type: 'number', min: 18, max: 100, unit: '歳', placeholder: '32', conditional: 'hasSpouse', required: 'hasSpouse', hint: 'パートナーの満年齢を入力してください。' },
+        { id: 'spouseIncome', label: '配偶者の年収', type: 'number', min: 0, unit: '万円', placeholder: '350', conditional: 'hasSpouse', info: 'スキップ可能', recommend: 0, recommendLabel: 'おすすめ: 0万円', hint: 'パートナーの年収を万円単位で入力してください。就業していない場合やわからなければスキップできます。' },
         {
           id: 'spouseWorksAfterFire',
           label: 'FIRE達成後も配偶者は就業継続',
           type: 'checkbox',
           conditional: 'hasSpouse',
+          hint: 'FIRE達成後もパートナーが仕事を続ける場合はチェックしてください。',
         },
       ],
     },
@@ -156,8 +158,9 @@ const FormSteps = {
           label: '住まいのタイプ',
           type: 'select',
           options: { rent: '賃貸', own: '持ち家（ローン完済）', owned: '住宅ローン返済中' },
+          hint: '現在の住まいの形態を選択してください。',
         },
-        { id: 'monthlyHousing', label: '月額住宅費', type: 'number', min: 0, unit: '万円', placeholder: '10', info: 'スキップ可能' },
+        { id: 'monthlyHousing', label: '月額住宅費', type: 'number', min: 0, unit: '万円', placeholder: '10', info: 'スキップ可能', recommend: 0, recommendLabel: 'おすすめ: 0万円', hint: '家賃または住宅ローンの毎月支払額を入力してください。持ち家で返済完済の場合はスキップできます。' },
       ],
     },
     {
@@ -171,9 +174,10 @@ const FormSteps = {
           label: 'ローンタイプ',
           type: 'select',
           options: { fixed: '全期間固定', variable: '変動金利', hybrid: '固定期間終了後変動' },
+          hint: '住宅ローンの金利タイプを選択してください。返済予定表で確認できます。',
         },
-        { id: 'loanRate', label: '金利', type: 'number', min: 0, max: 10, step: 0.1, unit: '%', placeholder: '2.5', info: 'スキップ可能' },
-        { id: 'loanYears', label: '残年数', type: 'number', min: 1, max: 50, unit: '年', placeholder: '30', info: 'スキップ可能' },
+        { id: 'loanRate', label: '金利', type: 'number', min: 0, max: 10, step: 0.1, unit: '%', placeholder: '2.5', info: 'スキップ可能', recommend: 1.0, recommendLabel: 'おすすめ: 1.0%', hint: '金融機関の返済予定表から確認できます。分からなければおすすめの1.0%を目安に。' },
+        { id: 'loanYears', label: '残年数', type: 'number', min: 1, max: 50, unit: '年', placeholder: '30', info: 'スキップ可能', hint: '返済予定表から、あと何年返済が続くか確認してください。' },
       ],
     },
     {
@@ -216,14 +220,15 @@ const FormSteps = {
       question: 'どのくらい投資にまわせそうですか',
       rationale: '毎月の積立と想定利回りが、将来の資産の伸びを決めます。',
       fields: [
-        { id: 'monthlyInvestment', label: '毎月の投資額', type: 'number', min: 0, unit: '万円', placeholder: '5', info: 'スキップ可能' },
+        { id: 'monthlyInvestment', label: '毎月の投資額', type: 'number', min: 0, unit: '万円', placeholder: '5', info: 'スキップ可能', recommend: 3, recommendLabel: 'おすすめ: 3万円', hint: '毎月どれだけを資産形成に回せるか入力してください。ボーナスなどの臨時収入は含めず、毎月コンスタントに投資できる額を。' },
         {
           id: 'returnRate',
           label: '想定年利',
           type: 'select',
           options: { '0.03': '3%（保守的）', '0.04': '4%（標準）', '0.05': '5%（積極的）', 'custom': 'カスタム' },
+          hint: '将来の投資リターンの仮定です。迷ったら4%（標準）をおすすめします。',
         },
-        { id: 'returnRateCustom', label: 'カスタム年利', type: 'number', min: 0, max: 20, step: 0.1, unit: '%', placeholder: '4', conditional: 'returnRateCustom' },
+        { id: 'returnRateCustom', label: 'カスタム年利', type: 'number', min: 0, max: 20, step: 0.1, unit: '%', placeholder: '4', conditional: 'returnRateCustom', recommend: 4, recommendLabel: 'おすすめ: 4%' },
       ],
     },
     {
@@ -231,14 +236,15 @@ const FormSteps = {
       question: 'どんなふうに働き方を変えたいですか',
       rationale: '目標年齢とFIREのかたちで、必要な準備が変わります。',
       fields: [
-        { id: 'fireAge', label: 'FIRE達成目標年齢', type: 'number', min: 25, max: 70, unit: '歳', placeholder: '45' },
+        { id: 'fireAge', label: 'FIRE達成目標年齢', type: 'number', min: 25, max: 70, unit: '歳', placeholder: '45', hint: '働かなくても生活できる年齢を想定してください。' },
         {
           id: 'fireType',
           label: 'FIREのタイプ',
           type: 'select',
           options: { full: '完全FIRE（労働なし）', side: 'サイドFIRE（月収あり）' },
+          hint: '完全引退か、セミリタイアか選択してください。',
         },
-        { id: 'fireMonthlyIncome', label: 'FIRE後の月収（サイドFIREの場合）', type: 'number', min: 0, unit: '万円', placeholder: '10', conditional: 'fireType', conditionValue: (val) => val === 'side' },
+        { id: 'fireMonthlyIncome', label: 'FIRE後の月収（サイドFIREの場合）', type: 'number', min: 0, unit: '万円', placeholder: '10', conditional: 'fireType', conditionValue: (val) => val === 'side', recommend: 10, recommendLabel: 'おすすめ: 10万円', hint: 'セミリタイア後の副業・配当などで得られる月間収入を入力してください。' },
       ],
     },
   ],
@@ -431,12 +437,63 @@ const UI = {
         label.className = 'form-label form-label--checkbox';
         label.htmlFor = 'form-' + field.id;
         label.appendChild(input);
-        label.appendChild(document.createTextNode(field.label));
+
+        const labelText = document.createElement('span');
+        labelText.textContent = field.label;
+        label.appendChild(labelText);
+
+        if (field.hint) {
+          const hintBtn = document.createElement('button');
+          hintBtn.type = 'button';
+          hintBtn.className = 'btn-hint btn-hint--inline';
+          hintBtn.textContent = '?';
+          hintBtn.title = field.hint;
+          hintBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            UI.showHint(field.label, field.hint);
+          });
+          label.appendChild(hintBtn);
+        }
+
         group.appendChild(label);
       } else if (field.type === 'select') {
+        // ラベル + 「?」「おすすめ」ボタン
+        const labelWrapper = document.createElement('div');
+        labelWrapper.className = 'form-label-row';
+
         label = document.createElement('label');
         label.className = 'form-label';
         label.textContent = field.label;
+        labelWrapper.appendChild(label);
+
+        if (field.hint) {
+          const hintBtn = document.createElement('button');
+          hintBtn.type = 'button';
+          hintBtn.className = 'btn-hint';
+          hintBtn.textContent = '?';
+          hintBtn.title = field.hint;
+          hintBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            UI.showHint(field.label, field.hint);
+          });
+          labelWrapper.appendChild(hintBtn);
+        }
+
+        if (field.recommend !== undefined) {
+          const recommendBtn = document.createElement('button');
+          recommendBtn.type = 'button';
+          recommendBtn.className = 'btn-recommend';
+          recommendBtn.textContent = 'おすすめ';
+          recommendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('form-' + field.id).value = field.recommend;
+            State.setInput(field.id, field.recommend);
+            State.setInput(field.id + '_isRecommended', 'true');
+          });
+          labelWrapper.appendChild(recommendBtn);
+        }
+
+        group.appendChild(labelWrapper);
 
         input = document.createElement('select');
         input.className = 'form-select';
@@ -467,9 +524,43 @@ const UI = {
         }
       } else {
         // テキスト/数値入力
+        // ラベル + 「?」「おすすめ」ボタン
+        const labelWrapper = document.createElement('div');
+        labelWrapper.className = 'form-label-row';
+
         label = document.createElement('label');
         label.className = 'form-label';
         label.textContent = field.label;
+        labelWrapper.appendChild(label);
+
+        if (field.hint) {
+          const hintBtn = document.createElement('button');
+          hintBtn.type = 'button';
+          hintBtn.className = 'btn-hint';
+          hintBtn.textContent = '?';
+          hintBtn.title = field.hint;
+          hintBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            UI.showHint(field.label, field.hint);
+          });
+          labelWrapper.appendChild(hintBtn);
+        }
+
+        if (field.recommend !== undefined) {
+          const recommendBtn = document.createElement('button');
+          recommendBtn.type = 'button';
+          recommendBtn.className = 'btn-recommend';
+          recommendBtn.textContent = 'おすすめ';
+          recommendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('form-' + field.id).value = field.recommend;
+            State.setInput(field.id, field.recommend);
+            State.setInput(field.id + '_isRecommended', 'true');
+          });
+          labelWrapper.appendChild(recommendBtn);
+        }
+
+        group.appendChild(labelWrapper);
 
         input = document.createElement('input');
         input.className = 'form-input';
@@ -515,10 +606,8 @@ const UI = {
           unitLabel.style.pointerEvents = 'none';
           wrapper.appendChild(unitLabel);
           input.style.paddingRight = '3rem';
-          group.appendChild(label);
           group.appendChild(wrapper);
         } else {
-          group.appendChild(label);
           group.appendChild(input);
         }
 
@@ -1481,6 +1570,17 @@ const Calculator = {
   closeModal() {
     const modal = document.getElementById('result-modal');
     modal.setAttribute('aria-hidden', 'true');
+  },
+
+  showHint(title, text) {
+    const modal = document.getElementById('result-modal');
+    const titleEl = modal.querySelector('#modal-title');
+    const body = modal.querySelector('.result-modal__body');
+
+    titleEl.textContent = 'ご説明';
+    body.innerHTML = `<p><strong>${title}</strong></p><p>${text}</p>`;
+
+    modal.setAttribute('aria-hidden', 'false');
   },
 };
 
