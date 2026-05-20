@@ -714,7 +714,8 @@ const UI = {
   },
 
   renderChildrenForm(form) {
-    const childCount = parseInt(State.getInput('childCount'), 10) || 0;
+    const childCountSelect = document.getElementById('form-childCount');
+    const childCount = childCountSelect ? parseInt(childCountSelect.value, 10) : 0;
     if (childCount === 0) {
       const p = document.createElement('p');
       p.style.color = 'var(--color-medium-gray)';
