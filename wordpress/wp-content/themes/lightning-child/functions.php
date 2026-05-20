@@ -7,11 +7,6 @@ function enqueue_lifeplan_app() {
       'https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js',
       array(), '4.4.8', true
     );
-    wp_enqueue_script(
-      'lifeplan-app',
-      site_url( '/lifeplan-simulator/script.js' ),
-      array( 'chartjs' ), false, true
-    );
   }
 }
 add_action( 'wp_enqueue_scripts', 'enqueue_lifeplan_app' );
