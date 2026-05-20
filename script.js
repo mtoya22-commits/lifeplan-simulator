@@ -700,13 +700,10 @@ const UI = {
 
         // カスタムフィールドの場合（children フォーム）
         if (field.type === 'custom' && field.id === 'children') {
-          const childrenContainer = document.getElementById('children-form-container') || form.querySelector('[data-children-form]');
+          const childrenContainer = document.getElementById('children-form-container') ||
+            (form ? form.querySelector('[data-children-form]') : null);
           if (childrenContainer) {
             childrenContainer.style.display = shouldShow ? 'block' : 'none';
-          } else if (shouldShow) {
-            // コンテナがない場合は再レンダリング
-            UI.renderInputScreen();
-            return;
           }
         } else {
           // 通常のフィールド
