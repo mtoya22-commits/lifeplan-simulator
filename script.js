@@ -689,9 +689,6 @@ const UI = {
   updateConditionalFields(fields, form) {
     fields.forEach((field) => {
       if (field.conditional) {
-        const group = document.getElementById('form-group-' + field.id);
-        if (!group) return;
-
         const condValue = State.getInput(field.conditional);
         let shouldShow = false;
 
@@ -701,26 +698,54 @@ const UI = {
           shouldShow = condValue !== undefined && condValue !== '' && condValue !== 'false';
         }
 
-        group.style.display = shouldShow ? 'flex' : 'none';
+        // カスタムフィールドの場合（children フォーム）
+        if (field.type === 'custom' && field.id === 'children') {
+          const childrenContainer = document.getElementById('children-form-container') || form.querySelector('[data-children-form]');
+          if (childrenContainer) {
+            childrenContainer.style.display = shouldShow ? 'block' : 'none';
+          } else if (shouldShow) {
+            // コンテナがない場合は再レンダリング
+            UI.renderInputScreen();
+            return;
+          }
+        } else {
+          // 通常のフィールド
+          const group = document.getElementById('form-group-' + field.id);
+          if (!group) return;
 
-        // カスタム年利など複数の条件をサポート
-        if (field.id === 'returnRateCustom' && State.getInput('returnRate') === 'custom') {
-          group.style.display = 'flex';
-        } else if (field.id === 'fireMonthlyIncome' && State.getInput('fireType') === 'side') {
-          group.style.display = 'flex';
+          group.style.display = shouldShow ? 'flex' : 'none';
+
+          // カスタム年利など複数の条件をサポート
+          if (field.id === 'returnRateCustom' && State.getInput('returnRate') === 'custom') {
+            group.style.display = 'flex';
+          } else if (field.id === 'fireMonthlyIncome' && State.getInput('fireType') === 'side') {
+            group.style.display = 'flex';
+          }
         }
       }
     });
   },
 
   renderChildrenForm(form) {
+    // 既存のコンテナがあれば削除
+    const existingContainer = form.querySelector('[data-children-form]');
+    if (existingContainer) {
+      existingContainer.remove();
+    }
+
     const childCountSelect = document.getElementById('form-childCount');
     const childCount = childCountSelect ? parseInt(childCountSelect.value, 10) : 0;
+
+    // コンテナを作成
+    const container = document.createElement('div');
+    container.setAttribute('data-children-form', 'true');
+
     if (childCount === 0) {
       const p = document.createElement('p');
       p.style.color = 'var(--color-medium-gray)';
       p.textContent = 'お子さんがいないため、設定はありません';
-      form.appendChild(p);
+      container.appendChild(p);
+      form.appendChild(container);
       return;
     }
 
@@ -793,8 +818,10 @@ const UI = {
       schoolGroup.appendChild(schoolSelect);
       section.appendChild(schoolGroup);
 
-      form.appendChild(section);
+      container.appendChild(section);
     }
+
+    form.appendChild(container);
   },
 
   validateCurrentStep() {
