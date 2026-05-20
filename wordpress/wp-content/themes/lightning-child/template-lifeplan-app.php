@@ -131,6 +131,17 @@ do_action( 'lightning_before_main' );
   </div>
 
 </div>
+
+<div id="result-modal" class="result-modal" aria-hidden="true">
+  <div class="result-modal__backdrop"></div>
+  <div class="result-modal__content" role="dialog" aria-labelledby="modal-title">
+    <div class="result-modal__header">
+      <h2 id="modal-title" class="result-modal__title"></h2>
+      <button class="result-modal__close" aria-label="閉じる">✕</button>
+    </div>
+    <div class="result-modal__body"></div>
+  </div>
+</div>
 <?php
 do_action( 'lightning_after_main' );
 get_footer();
