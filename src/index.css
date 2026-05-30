@@ -416,6 +416,66 @@ button {
   background: var(--accent);
 }
 
+/* ---------- scenario diff ---------- */
+.diff-card {
+  border-color: #d9e3f6;
+  background: linear-gradient(180deg, #f6f9ff 0%, var(--surface) 60%);
+}
+.diff-none {
+  color: var(--ink-faint);
+  font-size: 13.5px;
+  margin: 0;
+  line-height: 1.7;
+}
+.diff-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.diff-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.diff-label {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+.diff-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.diff-prev {
+  color: var(--ink-faint);
+}
+.diff-arrow {
+  color: var(--ink-faint);
+}
+.diff-curr {
+  color: var(--ink);
+}
+.diff-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.diff-badge.up {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.diff-badge.down {
+  background: var(--caution-soft);
+  color: var(--caution);
+}
+
 .chart-wrap {
   margin: 0 -6px;
 }

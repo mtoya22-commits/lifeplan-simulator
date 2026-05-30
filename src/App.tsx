@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { buildFullInputFromDetailed } from './domain/buildDetailed'
 import { buildFullInput } from './domain/buildInput'
 import { runSimulation } from './domain/simulation'
-import type { DetailedAnswers, FullInput, QuickAnswers } from './domain/types'
+import type { DetailedAnswers, FullInput, QuickAnswers, SimulationResult } from './domain/types'
 import { DetailedDiagnosis } from './features/detailed/DetailedDiagnosis'
 import { QuickDiagnosis } from './features/quick/QuickDiagnosis'
 import { ResultDashboard } from './features/result/ResultDashboard'
@@ -22,14 +22,23 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('home')
   const [input, setInput] = useState<FullInput | null>(null)
   const [lastMode, setLastMode] = useState<'quick' | 'detailed'>('quick')
+  // 前回の結果（再シミュレーション時の差分表示に使う）
+  const [previous, setPrevious] = useState<SimulationResult | null>(null)
 
   const hasQuickDraft = Object.keys(quickDraft).length > 0
+  const result = useMemo(() => (input ? runSimulation(input) : null), [input])
 
   function showResult(fi: FullInput, mode: 'quick' | 'detailed') {
     setInput(fi)
     setLastMode(mode)
     setScreen('result')
     window.scrollTo({ top: 0 })
+  }
+
+  // 条件変更・深掘りへ移る前に、現在の結果を前回スナップショットとして保存
+  function goAdjust(target: Screen) {
+    setPrevious(result)
+    setScreen(target)
   }
 
   if (screen === 'quick') {
@@ -60,18 +69,20 @@ export default function App() {
     )
   }
 
-  if (screen === 'result' && input) {
+  if (screen === 'result' && input && result) {
     return (
       <ResultDashboard
         input={input}
-        result={runSimulation(input)}
-        onAdjust={() => setScreen(lastMode)}
-        onDeepDive={() => setScreen('detailed')}
+        result={result}
+        previous={previous}
+        onAdjust={() => goAdjust(lastMode)}
+        onDeepDive={() => goAdjust('detailed')}
         showDeepDive={lastMode === 'quick'}
         onRestart={() => {
           clearQuick()
           clearDetailed()
           setInput(null)
+          setPrevious(null)
           setScreen('home')
         }}
       />

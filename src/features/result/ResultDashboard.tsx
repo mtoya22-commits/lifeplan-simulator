@@ -2,6 +2,7 @@ import { Suspense, lazy, useState } from 'react'
 import { SOURCE_LABEL, type Field } from '../../domain/field'
 import type { FullInput, SimulationResult } from '../../domain/types'
 import { BottomSheet } from './BottomSheet'
+import { ScenarioDiff } from './ScenarioDiff'
 import { Timeline } from './Timeline'
 import { buildPoints } from './points'
 
@@ -11,6 +12,7 @@ const AssetChart = lazy(() => import('./AssetChart'))
 interface Props {
   input: FullInput
   result: SimulationResult
+  previous: SimulationResult | null
   onAdjust: () => void
   onRestart: () => void
   onDeepDive: () => void
@@ -22,6 +24,7 @@ type SheetKey = null | 'cashflow' | 'assumptions'
 export function ResultDashboard({
   input,
   result,
+  previous,
   onAdjust,
   onRestart,
   onDeepDive,
@@ -55,6 +58,10 @@ export function ResultDashboard({
           tone={result.residualAtEnd >= 0 ? 'good' : 'caution'}
         />
       </section>
+
+      {previous && (
+        <ScenarioDiff previous={previous} current={result} endAge={input.endAge.value} />
+      )}
 
       <section className="card">
         <h2 className="card-title">今回のポイント</h2>
