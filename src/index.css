@@ -396,6 +396,79 @@ button {
   font-weight: 700;
   margin: 0;
 }
+.assessment {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+.assessment.level-stable {
+  background: var(--good-soft);
+  border-color: #cfe6da;
+}
+.assessment.level-attention {
+  background: var(--caution-soft);
+  border-color: #ecdcc2;
+}
+.assessment.level-review {
+  background: var(--caution-soft);
+  border-color: #ecdcc2;
+}
+.assessment-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  margin-bottom: 8px;
+}
+.level-stable .assessment-label {
+  color: var(--good);
+}
+.level-attention .assessment-label,
+.level-review .assessment-label {
+  color: var(--caution);
+}
+.assessment-message {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.hints-intro {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+.hints-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hint-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  background: var(--accent-soft);
+}
+.hint-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.hint-detail {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

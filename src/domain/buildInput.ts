@@ -147,5 +147,12 @@ export function buildFullInput(answers: QuickAnswers): FullInput {
     ),
     retireAge: field(answers.reduceWorkAge, 'default_value', '退職予定年齢', '仕事を減らす年齢と同じと仮定'),
     retirementLumpSum: field(0, 'default_value', '退職金見込み', 'ざっくり診断では考慮しません'),
+    oldAgeMonthlyLivingCost: field(
+      Math.round(monthlyLiving * 0.85),
+      'recommended_value',
+      '老後の生活費',
+      `おすすめ値 約${Math.round(monthlyLiving * 0.85)}万円/月（現役期の約85%）`,
+    ),
+    medicalCareReserve: field(0, 'default_value', '医療介護予備費', 'ざっくり診断では考慮しません'),
   }
 }

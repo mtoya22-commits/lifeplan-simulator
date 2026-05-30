@@ -22,6 +22,9 @@ export function runSimulation(input: FullInput): SimulationResult {
   const householdNet = takeHome(input.householdIncome.value)
   const postFireAnnual = input.postFireMonthlyIncome.value * 12
   const livingAnnual = input.monthlyLivingCost.value * 12
+  const oldAgeLivingAnnual = input.oldAgeMonthlyLivingCost.value * 12
+  const pensionStartAge = input.pensionStartAge.value
+  const MEDICAL_CARE_AGE = 80 // 医療介護予備費を計上する年齢
   const housingMonthlyAnnual = input.monthlyHousingCost.value * 12
   const loanPayoffAge = input.loanRemainingYears.value > 0 ? currentAge + input.loanRemainingYears.value : null
 
@@ -64,7 +67,12 @@ export function runSimulation(input: FullInput): SimulationResult {
       housing = housingMonthlyAnnual
     }
 
-    const expense = livingAnnual + education + housing
+    // --- 生活費：年金開始以降は老後生活費に切り替え ---
+    const living = age >= pensionStartAge ? oldAgeLivingAnnual : livingAnnual
+    // --- 医療介護予備費（80歳に一度だけ計上） ---
+    const medical = age === MEDICAL_CARE_AGE ? input.medicalCareReserve.value : 0
+
+    const expense = living + education + housing + medical
     const net = income - expense
 
     // 翌年資産 = 前年資産 × (1+年利) + 年間収支

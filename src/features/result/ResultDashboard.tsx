@@ -1,4 +1,5 @@
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
+import { assess, buildSuggestions } from '../../domain/assessment'
 import { SOURCE_LABEL, type Field } from '../../domain/field'
 import type { FullInput, SimulationResult } from '../../domain/types'
 import { BottomSheet } from './BottomSheet'
@@ -19,7 +20,7 @@ interface Props {
   showDeepDive: boolean
 }
 
-type SheetKey = null | 'cashflow' | 'assumptions'
+type SheetKey = null | 'cashflow' | 'assumptions' | 'hints'
 
 export function ResultDashboard({
   input,
@@ -32,6 +33,8 @@ export function ResultDashboard({
 }: Props) {
   const [sheet, setSheet] = useState<SheetKey>(null)
   const points = buildPoints(result)
+  const assessment = useMemo(() => assess(result), [result])
+  const suggestions = useMemo(() => buildSuggestions(input, result), [input, result])
 
   const longevityText = result.fireSuccess
     ? `${input.endAge.value}歳まで持続`
@@ -42,6 +45,10 @@ export function ResultDashboard({
       <header className="result-hero">
         <p className="hero-eyebrow">今回の条件ではこう見えます</p>
         <h1 className="hero-title">あなたの人生設計</h1>
+        <div className={`assessment level-${assessment.level}`}>
+          <span className="assessment-label">{assessment.label}</span>
+          <p className="assessment-message">{assessment.message}</p>
+        </div>
       </header>
 
       <section className="metric-grid">
@@ -89,6 +96,11 @@ export function ResultDashboard({
         <button className="btn primary block" onClick={onAdjust}>
           条件を変えてみる
         </button>
+        {suggestions.length > 0 && (
+          <button className="btn ghost block" onClick={() => setSheet('hints')}>
+            見直しヒントを見る（{suggestions.length}件）
+          </button>
+        )}
         <div className="cta-row">
           <button className="btn ghost" onClick={() => setSheet('assumptions')}>
             今回の試算条件
@@ -118,6 +130,20 @@ export function ResultDashboard({
 
       <BottomSheet open={sheet === 'cashflow'} title="年ごとの収支" onClose={() => setSheet(null)}>
         <CashflowTable result={result} />
+      </BottomSheet>
+
+      <BottomSheet open={sheet === 'hints'} title="見直しヒント" onClose={() => setSheet(null)}>
+        <p className="hints-intro">
+          いくつかの調整を試算しました。気になるものは「条件を変えてみる」で実際に反映できます。
+        </p>
+        <ul className="hints-list">
+          {suggestions.map((s, i) => (
+            <li key={i} className="hint-item">
+              <p className="hint-title">{s.title}</p>
+              <p className="hint-detail">{s.detail}</p>
+            </li>
+          ))}
+        </ul>
       </BottomSheet>
     </div>
   )

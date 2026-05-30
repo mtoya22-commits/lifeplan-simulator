@@ -176,5 +176,21 @@ export function buildFullInputFromDetailed(a: DetailedAnswers): FullInput {
       (v) => (v ? `${v}万円` : 'なし'),
       '未入力（考慮しません）',
     ),
+    oldAgeMonthlyLivingCost: pick(
+      a.oldAgeMonthlyLivingCost,
+      Math.round((a.monthlyLivingCost ?? 26) * 0.85),
+      'recommended_value',
+      '老後の生活費',
+      (v) => `${v}万円/月`,
+      `おすすめ値 約${Math.round((a.monthlyLivingCost ?? 26) * 0.85)}万円/月（現役期の約85%）`,
+    ),
+    medicalCareReserve: pick(
+      a.medicalCareReserve,
+      0,
+      'default_value',
+      '医療介護予備費',
+      (v) => (v ? `${v}万円（80歳時）` : 'なし'),
+      '未入力',
+    ),
   }
 }

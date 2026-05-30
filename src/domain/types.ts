@@ -48,6 +48,8 @@ export interface FullInput {
   pensionStartAge: Field<number>
   retireAge: Field<number> // 退職予定年齢（退職金を受け取る年）
   retirementLumpSum: Field<number> // 退職金見込み 万円
+  oldAgeMonthlyLivingCost: Field<number> // 老後の毎月生活費 万円/月（年金開始以降）
+  medicalCareReserve: Field<number> // 医療介護予備費 万円（80歳時に一括計上）
 }
 
 /** しっかり診断の生の回答。すべて任意（未入力はおすすめ／標準値で補う） */
@@ -73,6 +75,8 @@ export interface DetailedAnswers {
   pensionStartAge?: number
   retireAge?: number
   retirementLumpSum?: number // 万円
+  oldAgeMonthlyLivingCost?: number // 万円/月
+  medicalCareReserve?: number // 万円
 }
 
 // ------- シミュレーション結果 -------

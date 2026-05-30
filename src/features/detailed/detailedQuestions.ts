@@ -133,10 +133,12 @@ export const DETAILED_SECTIONS: DSection[] = [
     title: '老後',
     caption: 'ねんきん定期便や退職金規程が手元にあれば、より正確になります。',
     fields: [
-      { kind: 'number', key: 'pensionAnnual', label: '年金見込み（年）', unit: '万円', min: 0, max: 500, step: 10, recommended: 180, placeholder: '180' },
+      { kind: 'number', key: 'pensionAnnual', label: '年金見込み（年）', unit: '万円', min: 0, max: 500, step: 10, recommended: 180, placeholder: '180', help: 'ねんきん定期便の見込み額（年額）が目安です。' },
       { kind: 'number', key: 'pensionStartAge', label: '年金開始年齢', unit: '歳', min: 60, max: 75, step: 1, recommended: 65, placeholder: '65' },
       { kind: 'number', key: 'retireAge', label: '退職予定年齢', unit: '歳', min: 40, max: 75, step: 1, placeholder: '60' },
       { kind: 'number', key: 'retirementLumpSum', label: '退職金見込み', unit: '万円', min: 0, max: 10000, step: 50, placeholder: '1000' },
+      { kind: 'number', key: 'oldAgeMonthlyLivingCost', label: '老後の毎月生活費', unit: '万円', min: 0, max: 100, step: 1, placeholder: '22', help: '年金開始以降の毎月の生活費です。現役期より少し下がる家庭が多めです。' },
+      { kind: 'number', key: 'medicalCareReserve', label: '医療・介護予備費', unit: '万円', min: 0, max: 5000, step: 50, placeholder: '500', help: '後半の医療・介護にそなえる予備費。80歳時点の一時支出として試算します。' },
     ],
   },
 ]
