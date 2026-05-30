@@ -44,7 +44,9 @@ export function runSimulation(input: FullInput): SimulationResult {
 
     // --- 年金 ---
     const pension = age >= input.pensionStartAge.value ? input.pensionAnnual.value : 0
-    const income = laborIncome + pension
+    // --- 退職金（退職予定年齢の年に一度だけ計上） ---
+    const lumpSum = age === input.retireAge.value ? input.retirementLumpSum.value : 0
+    const income = laborIncome + pension + lumpSum
 
     // --- 教育費 ---
     const education = totalEducationCost(input.childrenAges.value, yearsElapsed, input.educationPolicy.value)

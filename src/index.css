@@ -229,6 +229,49 @@ button {
   padding: 8px 14px;
   border-radius: 999px;
 }
+.section-caption {
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.7;
+  margin: -12px 0 24px;
+}
+.btn.ghost.deep {
+  margin-top: 4px;
+}
+.children-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.child-age-row {
+  padding-left: 4px;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: var(--surface);
+}
+.stepper button {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 18px;
+  line-height: 1;
+}
+.stepper-value {
+  font-size: 17px;
+  font-weight: 700;
+  min-width: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
 .choice-grid {
   display: grid;
   gap: 10px;

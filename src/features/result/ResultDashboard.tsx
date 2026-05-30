@@ -13,11 +13,20 @@ interface Props {
   result: SimulationResult
   onAdjust: () => void
   onRestart: () => void
+  onDeepDive: () => void
+  showDeepDive: boolean
 }
 
 type SheetKey = null | 'cashflow' | 'assumptions'
 
-export function ResultDashboard({ input, result, onAdjust, onRestart }: Props) {
+export function ResultDashboard({
+  input,
+  result,
+  onAdjust,
+  onRestart,
+  onDeepDive,
+  showDeepDive,
+}: Props) {
   const [sheet, setSheet] = useState<SheetKey>(null)
   const points = buildPoints(result)
 
@@ -81,12 +90,19 @@ export function ResultDashboard({ input, result, onAdjust, onRestart }: Props) {
             年ごとの収支
           </button>
         </div>
+        {showDeepDive && (
+          <button className="btn ghost block deep" onClick={onDeepDive}>
+            しっかり診断で詳しく設計する
+          </button>
+        )}
         <button className="link-btn center" onClick={onRestart}>
           最初からやり直す
         </button>
-        <p className="deep-link">
-          さらに詳しく試したい方は「しっかり診断」（準備中）でより精密に設計できます。
-        </p>
+        {showDeepDive && (
+          <p className="deep-link">
+            年齢別の教育費・住宅ローン・退職金などを入れると、より精密に試算できます。
+          </p>
+        )}
       </section>
 
       <BottomSheet open={sheet === 'assumptions'} title="今回の試算条件" onClose={() => setSheet(null)}>

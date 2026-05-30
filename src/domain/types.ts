@@ -41,6 +41,29 @@ export interface FullInput {
   annualReturn: Field<number> // 想定利回り（小数 例: 0.04）
   pensionAnnual: Field<number> // 万円/年
   pensionStartAge: Field<number>
+  retireAge: Field<number> // 退職予定年齢（退職金を受け取る年）
+  retirementLumpSum: Field<number> // 退職金見込み 万円
+}
+
+/** しっかり診断の生の回答。すべて任意（未入力はおすすめ／標準値で補う） */
+export interface DetailedAnswers {
+  age?: number
+  householdIncome?: number // 額面 万円/年
+  currentAssets?: number // 万円
+  monthlyLivingCost?: number // 万円/月
+  childrenAges?: number[] // 各子どもの現在年齢
+  educationPolicy?: EducationPolicy
+  housing?: HousingType
+  monthlyHousingCost?: number // 万円/月
+  loanRemainingYears?: number
+  workStyle?: WorkStyle
+  fireAge?: number
+  postFireMonthlyIncome?: number // 万円/月
+  annualReturnPct?: number // % 表記（例: 4）
+  pensionAnnual?: number // 万円/年
+  pensionStartAge?: number
+  retireAge?: number
+  retirementLumpSum?: number // 万円
 }
 
 // ------- シミュレーション結果 -------

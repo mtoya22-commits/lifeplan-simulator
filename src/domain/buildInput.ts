@@ -131,5 +131,7 @@ export function buildFullInput(answers: QuickAnswers): FullInput {
       '年金開始年齢',
       `${PENSION_START_AGE}歳から`,
     ),
+    retireAge: field(answers.reduceWorkAge, 'default_value', '退職予定年齢', '仕事を減らす年齢と同じと仮定'),
+    retirementLumpSum: field(0, 'default_value', '退職金見込み', 'ざっくり診断では考慮しません'),
   }
 }
