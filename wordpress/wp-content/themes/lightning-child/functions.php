@@ -1,23 +1,21 @@
 <?php
-/**
- * Lightning Child Theme functions and definitions
- */
-
 function enqueue_lifeplan_app() {
-  $page_id = 6;
-  if ( is_page( $page_id ) ) {
-    wp_enqueue_style(
-      'lifeplan-app',
-      get_stylesheet_directory_uri() . '/assets/css/style-lifeplan-app.css',
-      [],
-      filemtime( get_stylesheet_directory() . '/assets/css/style-lifeplan-app.css' )
+  if ( is_page( 6 ) ) {
+    $js_path  = ABSPATH . 'lifeplan-simulator/script.js';
+    $css_path = ABSPATH . 'lifeplan-simulator/style.css';
+    $js_ver   = file_exists( $js_path )  ? filemtime( $js_path )  : null;
+    $css_ver  = file_exists( $css_path ) ? filemtime( $css_path ) : null;
+
+    wp_enqueue_style( 'lifeplan-app', site_url( '/lifeplan-simulator/style.css' ), array(), $css_ver );
+    wp_enqueue_script(
+      'chartjs',
+      'https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js',
+      array(), '4.4.8', true
     );
     wp_enqueue_script(
       'lifeplan-app',
-      get_stylesheet_directory_uri() . '/assets/js/script-lifeplan-app.js',
-      [],
-      filemtime( get_stylesheet_directory() . '/assets/js/script-lifeplan-app.js' ),
-      true
+      site_url( '/lifeplan-simulator/script.js' ),
+      array( 'chartjs' ), $js_ver, true
     );
   }
 }
