@@ -4,44 +4,67 @@ import type { EducationPolicy } from './types'
 const PRESCHOOL = 30 // 0〜5歳 未就学
 const ELEMENTARY = 35 // 6〜11歳 小学校（公立）
 
-interface Stage {
-  middle: number // 12〜14歳
-  high: number // 15〜17歳
-  university: number // 18〜21歳
+const MIDDLE = { public: 55, private: 140 } // 12〜14歳
+const HIGH = { public: 60, private: 120 } // 15〜17歳
+// 18〜21歳 大学：種別×住まい
+const UNIVERSITY = {
+  liberal: { home: 120, alone: 240 }, // 文系
+  science: { home: 160, alone: 280 }, // 理系
+} as const
+
+export type SchoolChoice = 'public' | 'private'
+export type UniversityType = 'none' | 'liberal' | 'science' | 'undecided'
+export type UniversityLiving = 'home' | 'alone' | 'undecided'
+
+/** 子ども1人の教育プラン（現在年齢＋進路） */
+export interface ChildEducation {
+  age: number
+  middle: SchoolChoice
+  high: SchoolChoice
+  university: UniversityType
+  universityLiving: UniversityLiving
 }
 
-// 教育方針ごとの中学・高校・大学の費用。
-const POLICY_TABLE: Record<EducationPolicy, Stage> = {
-  // 公立中心：中学公立 / 高校公立 / 大学 文系自宅
-  public: { middle: 55, high: 60, university: 120 },
-  // 一部私立：中学公立 / 高校私立 / 大学 文系自宅
-  some_private: { middle: 55, high: 120, university: 120 },
-  // 教育重視：中学私立 / 高校私立 / 大学 理系一人暮らし
-  focused: { middle: 140, high: 120, university: 280 },
-  // 未定：一部私立相当を仮置き
-  undecided: { middle: 55, high: 90, university: 160 },
+/** 教育方針（ざっくり診断のグローバル選択）から、子どものデフォルト進路を導く */
+export function policyToProfile(policy: EducationPolicy): Omit<ChildEducation, 'age'> {
+  switch (policy) {
+    case 'public':
+      return { middle: 'public', high: 'public', university: 'liberal', universityLiving: 'home' }
+    case 'some_private':
+      return { middle: 'public', high: 'private', university: 'liberal', universityLiving: 'home' }
+    case 'focused':
+      return { middle: 'private', high: 'private', university: 'science', universityLiving: 'alone' }
+    case 'undecided':
+      return { middle: 'public', high: 'public', university: 'undecided', universityLiving: 'undecided' }
+  }
 }
 
-/** 子ども1人・指定年齢の年間教育費（万円） */
-export function educationCostForChild(age: number, policy: EducationPolicy): number {
-  const stage = POLICY_TABLE[policy]
+function universityCost(type: UniversityType, living: UniversityLiving): number {
+  if (type === 'none') return 0
+  // 未定は文系・自宅と一人暮らしの中間あたりを仮置き
+  if (type === 'undecided' || living === 'undecided') {
+    const liberalAvg = (UNIVERSITY.liberal.home + UNIVERSITY.liberal.alone) / 2
+    const scienceAvg = (UNIVERSITY.science.home + UNIVERSITY.science.alone) / 2
+    if (type === 'science') return living === 'home' ? UNIVERSITY.science.home : scienceAvg
+    if (type === 'liberal') return living === 'home' ? UNIVERSITY.liberal.home : liberalAvg
+    return (liberalAvg + scienceAvg) / 2 // 種別も未定
+  }
+  return UNIVERSITY[type][living]
+}
+
+/** 子ども1人・指定の経過年数後の年間教育費（万円） */
+export function educationCostForChild(plan: ChildEducation, yearsElapsed: number): number {
+  const age = plan.age + yearsElapsed
   if (age < 0) return 0
   if (age <= 5) return PRESCHOOL
   if (age <= 11) return ELEMENTARY
-  if (age <= 14) return stage.middle
-  if (age <= 17) return stage.high
-  if (age <= 21) return stage.university
+  if (age <= 14) return MIDDLE[plan.middle]
+  if (age <= 17) return HIGH[plan.high]
+  if (age <= 21) return universityCost(plan.university, plan.universityLiving)
   return 0 // 22歳以降は教育費なし
 }
 
 /** 全子どもの、指定の経過年数後の合計教育費（万円） */
-export function totalEducationCost(
-  childrenCurrentAges: number[],
-  yearsElapsed: number,
-  policy: EducationPolicy,
-): number {
-  return childrenCurrentAges.reduce(
-    (sum, base) => sum + educationCostForChild(base + yearsElapsed, policy),
-    0,
-  )
+export function totalEducationCost(plans: ChildEducation[], yearsElapsed: number): number {
+  return plans.reduce((sum, plan) => sum + educationCostForChild(plan, yearsElapsed), 0)
 }

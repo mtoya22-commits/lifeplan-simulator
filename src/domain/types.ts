@@ -1,3 +1,4 @@
+import type { ChildEducation } from './education'
 import type { Field } from './field'
 
 // ------- ユーザー選択肢の型 -------
@@ -6,6 +7,7 @@ export type EducationPolicy = 'public' | 'some_private' | 'focused' | 'undecided
 export type HousingType = 'own' | 'rent' | 'considering'
 export type WorkStyle = 'full_retire' | 'side_fire' | 'undecided'
 export type InvestStyle = 'stable' | 'balanced' | 'growth'
+export type LoanInterestType = 'fixed' | 'variable'
 
 /** ざっくり診断の生の回答（5ページ9問） */
 export interface QuickAnswers {
@@ -30,11 +32,14 @@ export interface FullInput {
   householdIncome: Field<number> // 万円/年（額面）
   currentAssets: Field<number> // 万円
   monthlyLivingCost: Field<number> // 万円/月
-  childrenAges: Field<number[]> // 現在の子どもの年齢
-  educationPolicy: Field<EducationPolicy>
+  childPlans: Field<ChildEducation[]> // 子どもごとの教育プラン
   housingType: Field<HousingType>
   monthlyHousingCost: Field<number> // 万円/月
   loanRemainingYears: Field<number> // 残年数（持ち家ローン）
+  loanBalance: Field<number> // ローン残高 万円
+  loanRatePct: Field<number> // 金利 %
+  loanInterestType: Field<LoanInterestType> // 固定／変動
+  fixedPeriodEndYears: Field<number> // 固定期間終了までの年数（0=なし）
   workStyle: Field<WorkStyle>
   fireAge: Field<number> // 仕事を減らす／FIRE開始年齢
   postFireMonthlyIncome: Field<number> // 万円/月（サイドFIRE後の労働収入）
@@ -51,11 +56,15 @@ export interface DetailedAnswers {
   householdIncome?: number // 額面 万円/年
   currentAssets?: number // 万円
   monthlyLivingCost?: number // 万円/月
-  childrenAges?: number[] // 各子どもの現在年齢
-  educationPolicy?: EducationPolicy
+  childPlans?: ChildEducation[] // 子どもごとの教育プラン
+  educationPolicy?: EducationPolicy // 一括設定の初期値に使う
   housing?: HousingType
   monthlyHousingCost?: number // 万円/月
   loanRemainingYears?: number
+  loanBalance?: number // ローン残高 万円
+  loanRatePct?: number // 金利 %
+  loanInterestType?: LoanInterestType
+  fixedPeriodEndYears?: number // 固定期間終了までの年数
   workStyle?: WorkStyle
   fireAge?: number
   postFireMonthlyIncome?: number // 万円/月
@@ -73,6 +82,7 @@ export type LifeEventType =
   | 'education_peak'
   | 'fire_start'
   | 'mortgage_payoff'
+  | 'fixed_period_end'
   | 'pension_start'
   | 'end'
   | 'depletion'

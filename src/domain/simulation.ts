@@ -48,8 +48,8 @@ export function runSimulation(input: FullInput): SimulationResult {
     const lumpSum = age === input.retireAge.value ? input.retirementLumpSum.value : 0
     const income = laborIncome + pension + lumpSum
 
-    // --- 教育費 ---
-    const education = totalEducationCost(input.childrenAges.value, yearsElapsed, input.educationPolicy.value)
+    // --- 教育費（子どもごとのプランから合算） ---
+    const education = totalEducationCost(input.childPlans.value, yearsElapsed)
     if (education > educationPeakAmount) {
       educationPeakAmount = education
       educationPeakAge = age
@@ -158,6 +158,21 @@ function buildLifeEvents(args: {
       type: 'fire_start',
       label: input.workStyle.value === 'full_retire' ? 'FIRE開始' : '働き方の見直し',
     })
+  }
+
+  // 固定期間終了（固定金利の見直し時期）
+  const fixedEndYears = input.fixedPeriodEndYears.value
+  if (input.loanInterestType.value === 'fixed' && fixedEndYears > 0) {
+    const fixedEndAge = currentAge + fixedEndYears
+    if (fixedEndAge <= input.endAge.value) {
+      events.push({
+        age: fixedEndAge,
+        year: toYear(fixedEndAge),
+        type: 'fixed_period_end',
+        label: '固定金利の終了',
+        note: '金利が変わる可能性がある時期です',
+      })
+    }
   }
 
   if (loanPayoffAge !== null && loanPayoffAge <= input.endAge.value) {

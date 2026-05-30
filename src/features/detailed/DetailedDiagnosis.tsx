@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { DetailedAnswers } from '../../domain/types'
+import { policyToProfile, type ChildEducation } from '../../domain/education'
+import type { DetailedAnswers, EducationPolicy } from '../../domain/types'
 import { DETAILED_SECTIONS, type DField } from './detailedQuestions'
 
 interface Props {
@@ -154,24 +155,30 @@ function DetailedField({ f, answers, openHelp, onToggleHelp, onChange }: FieldPr
 
       {f.kind === 'children' && (
         <ChildrenInput
-          value={answers.childrenAges ?? []}
-          onChange={(ages) => onChange({ childrenAges: ages })}
+          value={answers.childPlans ?? []}
+          policy={answers.educationPolicy ?? 'undecided'}
+          onChange={(plans) => onChange({ childPlans: plans })}
         />
       )}
     </div>
   )
 }
 
-function ChildrenInput({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+interface ChildrenProps {
+  value: ChildEducation[]
+  policy: EducationPolicy
+  onChange: (v: ChildEducation[]) => void
+}
+
+function ChildrenInput({ value, policy, onChange }: ChildrenProps) {
   function setCount(count: number) {
     const next = [...value]
     if (count < next.length) next.length = count
-    else while (next.length < count) next.push(0)
+    else while (next.length < count) next.push({ age: 6, ...policyToProfile(policy) })
     onChange(next)
   }
-  function setAge(i: number, age: number) {
-    const next = [...value]
-    next[i] = age
+  function patchChild(i: number, patch: Partial<ChildEducation>) {
+    const next = value.map((c, idx) => (idx === i ? { ...c, ...patch } : c))
     onChange(next)
   }
 
@@ -189,21 +196,94 @@ function ChildrenInput({ value, onChange }: { value: number[]; onChange: (v: num
           </button>
         </div>
       </div>
-      {value.map((age, i) => (
-        <div className="number-row child-age-row" key={i}>
-          <span className="unit">{i + 1}人目の年齢</span>
-          <input
-            className="number-input"
-            type="number"
-            inputMode="numeric"
-            min={0}
-            max={30}
-            value={age}
-            onChange={(e) => setAge(i, Number(e.target.value))}
+
+      {value.map((child, i) => (
+        <div className="child-card" key={i}>
+          <div className="child-card-head">
+            <span className="child-no">{i + 1}人目</span>
+            <div className="child-age">
+              <input
+                className="number-input compact"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={30}
+                value={child.age}
+                onChange={(e) => patchChild(i, { age: Number(e.target.value) })}
+              />
+              <span className="unit">歳</span>
+            </div>
+          </div>
+          <Seg
+            label="中学"
+            value={child.middle}
+            options={[
+              ['public', '公立'],
+              ['private', '私立'],
+            ]}
+            onChange={(v) => patchChild(i, { middle: v as ChildEducation['middle'] })}
           />
-          <span className="unit">歳</span>
+          <Seg
+            label="高校"
+            value={child.high}
+            options={[
+              ['public', '公立'],
+              ['private', '私立'],
+            ]}
+            onChange={(v) => patchChild(i, { high: v as ChildEducation['high'] })}
+          />
+          <Seg
+            label="大学"
+            value={child.university}
+            options={[
+              ['none', 'なし'],
+              ['liberal', '文系'],
+              ['science', '理系'],
+              ['undecided', '未定'],
+            ]}
+            onChange={(v) => patchChild(i, { university: v as ChildEducation['university'] })}
+          />
+          {child.university !== 'none' && (
+            <Seg
+              label="住まい"
+              value={child.universityLiving}
+              options={[
+                ['home', '自宅'],
+                ['alone', '一人暮らし'],
+                ['undecided', '未定'],
+              ]}
+              onChange={(v) =>
+                patchChild(i, { universityLiving: v as ChildEducation['universityLiving'] })
+              }
+            />
+          )}
         </div>
       ))}
+    </div>
+  )
+}
+
+function Seg({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: [string, string][]
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="seg-row">
+      <span className="seg-label">{label}</span>
+      <div className="seg">
+        {options.map(([v, l]) => (
+          <button key={v} className={`seg-btn ${value === v ? 'on' : ''}`} onClick={() => onChange(v)}>
+            {l}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

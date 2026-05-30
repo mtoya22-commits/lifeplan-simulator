@@ -61,13 +61,12 @@ export const DETAILED_SECTIONS: DSection[] = [
   },
   {
     title: '教育',
-    caption: 'お子さまごとの年齢を入れると、教育費ピークの精度が上がります。',
+    caption: 'まず教育方針を選ぶと、お子さまごとの初期値に反映されます。年齢と進路は個別に調整できます。',
     fields: [
-      { kind: 'children', key: 'childrenAges', label: 'お子さまの年齢' },
       {
         kind: 'choice',
         key: 'educationPolicy',
-        label: '教育方針',
+        label: '教育方針（初期値）',
         options: [
           { value: 'public', label: '公立中心' },
           { value: 'some_private', label: '一部私立' },
@@ -75,6 +74,7 @@ export const DETAILED_SECTIONS: DSection[] = [
           { value: 'undecided', label: '未定' },
         ],
       },
+      { kind: 'children', key: 'childPlans', label: 'お子さまごとの設定' },
     ],
   },
   {
@@ -90,8 +90,20 @@ export const DETAILED_SECTIONS: DSection[] = [
           { value: 'considering', label: '購入検討中' },
         ],
       },
-      { kind: 'number', key: 'monthlyHousingCost', label: '毎月の住居費', unit: '万円', min: 0, max: 100, step: 1, placeholder: '10', help: 'ローン返済額または家賃の毎月の額です。' },
-      { kind: 'number', key: 'loanRemainingYears', label: 'ローン残年数', unit: '年', min: 0, max: 50, step: 1, placeholder: '20', help: '持ち家でローン返済中の場合の、残りの返済年数です。' },
+      { kind: 'number', key: 'monthlyHousingCost', label: '毎月の住居費', unit: '万円', min: 0, max: 100, step: 1, placeholder: '10', help: 'ローン返済額または家賃の毎月の額です。年間住居費はこの12倍で計算します。' },
+      { kind: 'number', key: 'loanRemainingYears', label: 'ローン残年数', unit: '年', min: 0, max: 50, step: 1, placeholder: '20', help: '持ち家でローン返済中の場合の、残りの返済年数です。完済年齢がタイムラインに表示されます。' },
+      { kind: 'number', key: 'loanBalance', label: 'ローン残高', unit: '万円', min: 0, max: 20000, step: 50, placeholder: '2500', help: '現在のおおよその残高です。残高推移の表示に使います。' },
+      { kind: 'number', key: 'loanRatePct', label: '住宅ローン金利', unit: '%', min: 0, max: 5, step: 0.05, recommended: 1.0, placeholder: '1.0' },
+      {
+        kind: 'choice',
+        key: 'loanInterestType',
+        label: '金利タイプ',
+        options: [
+          { value: 'variable', label: '変動金利' },
+          { value: 'fixed', label: '固定金利' },
+        ],
+      },
+      { kind: 'number', key: 'fixedPeriodEndYears', label: '固定期間の終了', unit: '年後', min: 0, max: 35, step: 1, placeholder: '7', help: '固定金利の場合、あと何年で固定期間が終わるか。終了時期をタイムラインに表示します。' },
     ],
   },
   {

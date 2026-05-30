@@ -25,7 +25,7 @@ function pick<T>(
 /** しっかり診断の回答を共通入力 FullInput に変換する。 */
 export function buildFullInputFromDetailed(a: DetailedAnswers): FullInput {
   const age = a.age ?? 40
-  const childCount = a.childrenAges?.length ?? 0
+  const childCount = a.childPlans?.length ?? 0
   const housing: HousingType = a.housing ?? 'own'
   const workStyle: WorkStyle = a.workStyle ?? 'side_fire'
   const fireAge = a.fireAge ?? 55
@@ -62,21 +62,13 @@ export function buildFullInputFromDetailed(a: DetailedAnswers): FullInput {
       (v) => `${v}万円/月`,
       `おすすめ値 約${24 + childCount * 2}万円/月`,
     ),
-    childrenAges: pick(
-      a.childrenAges,
+    childPlans: pick(
+      a.childPlans && a.childPlans.length ? a.childPlans : undefined,
       [],
       'default_value',
-      '子どもの年齢',
-      (v) => (v.length ? v.map((x) => `${x}歳`).join('・') : '子どもなし'),
+      '子どもの教育',
+      (v) => `${v.length}人・進路を個別に設定（年齢: ${v.map((c) => `${c.age}歳`).join('・')}）`,
       '子どもなしとして試算',
-    ),
-    educationPolicy: pick(
-      a.educationPolicy,
-      'undecided',
-      'default_value',
-      '教育方針',
-      () => '入力あり',
-      '標準値（一部私立相当）',
     ),
     housingType: pick(a.housing, 'own', 'default_value', '住まい', () => '入力あり', '標準値 持ち家'),
     monthlyHousingCost: pick(
@@ -94,6 +86,38 @@ export function buildFullInputFromDetailed(a: DetailedAnswers): FullInput {
       '住宅ローン残年数',
       (v) => (v ? `残り${v}年` : 'ローンなし'),
       defaultLoanYears ? `残り約${defaultLoanYears}年と仮定` : 'ローンなし',
+    ),
+    loanBalance: pick(
+      a.loanBalance,
+      0,
+      'default_value',
+      'ローン残高',
+      (v) => (v ? `${v}万円` : 'ローンなし'),
+      '未入力',
+    ),
+    loanRatePct: pick(
+      a.loanRatePct,
+      1.0,
+      'recommended_value',
+      '住宅ローン金利',
+      (v) => `年${v}%`,
+      'おすすめ値 年1.0%',
+    ),
+    loanInterestType: pick(
+      a.loanInterestType,
+      'variable',
+      'default_value',
+      '金利タイプ',
+      (v) => (v === 'fixed' ? '固定金利' : '変動金利'),
+      '標準値 変動金利',
+    ),
+    fixedPeriodEndYears: pick(
+      a.fixedPeriodEndYears,
+      0,
+      'default_value',
+      '固定期間終了',
+      (v) => (v ? `${v}年後` : 'なし'),
+      '未入力',
     ),
     workStyle: pick(
       a.workStyle,

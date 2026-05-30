@@ -1,3 +1,4 @@
+import { policyToProfile, type ChildEducation } from './education'
 import { field } from './field'
 import type { FullInput, InvestStyle, QuickAnswers } from './types'
 
@@ -9,14 +10,6 @@ const RETURN_BY_STYLE: Record<InvestStyle, number> = {
   stable: 0.025,
   balanced: 0.04,
   growth: 0.055,
-}
-
-/** 子どもの現在年齢を親年齢から推定する（共有メモ：ざっくり診断では子ども年齢を聞かない） */
-function estimateChildrenAges(parentAge: number, count: number): number[] {
-  if (count <= 0) return []
-  // 第一子は親が約32歳のときに生まれたと仮定し、3歳間隔で配置。0歳未満にはしない。
-  const firstChildAge = Math.max(0, parentAge - 32)
-  return Array.from({ length: count }, (_, i) => Math.max(0, firstChildAge - i * 3))
 }
 
 /** 住まいの種別から毎月の住居費（万円/月）とローン残年数を推定 */
@@ -31,6 +24,17 @@ function estimateHousing(answers: QuickAnswers): { monthly: number; loanYears: n
       // 購入検討中：現状賃貸→将来ローン相当を仮置き
       return { monthly: 11, loanYears: 30 }
   }
+}
+
+/** 子ども人数と教育方針から、子どもごとの教育プランを推定 */
+function buildChildPlans(answers: QuickAnswers): ChildEducation[] {
+  if (answers.childrenCount <= 0) return []
+  const profile = policyToProfile(answers.educationPolicy)
+  const firstChildAge = Math.max(0, answers.age - 32)
+  return Array.from({ length: answers.childrenCount }, (_, i) => ({
+    age: Math.max(0, firstChildAge - i * 3),
+    ...profile,
+  }))
 }
 
 /** 世帯年収から毎月生活費（万円/月）を概算。子ども数で少し加算。 */
@@ -58,9 +62,11 @@ function estimatePostFireIncome(answers: QuickAnswers): number {
 export function buildFullInput(answers: QuickAnswers): FullInput {
   const housing = estimateHousing(answers)
   const monthlyLiving = estimateMonthlyLiving(answers)
-  const childrenAges = estimateChildrenAges(answers.age, answers.childrenCount)
+  const childPlans = buildChildPlans(answers)
   const annualReturn = RETURN_BY_STYLE[answers.investStyle]
   const postFire = estimatePostFireIncome(answers)
+  // ざっくり診断ではローン残高・金利は概算（残年数×毎月返済額から残高を逆算）
+  const loanBalance = housing.loanYears > 0 ? Math.round(housing.monthly * 12 * housing.loanYears) : 0
 
   return {
     currentAge: field(answers.age, 'user_input', '現在の年齢', `${answers.age}歳`),
@@ -83,15 +89,14 @@ export function buildFullInput(answers: QuickAnswers): FullInput {
       '毎月の生活費',
       `おすすめ値 約${monthlyLiving}万円/月（子ども人数から概算）`,
     ),
-    childrenAges: field(
-      childrenAges,
-      childrenAges.length ? 'recommended_value' : 'user_input',
-      '子どもの年齢',
-      childrenAges.length
-        ? `人数から推定：${childrenAges.map((a) => `${a}歳`).join('・')}`
+    childPlans: field(
+      childPlans,
+      childPlans.length ? 'recommended_value' : 'user_input',
+      '子どもの教育',
+      childPlans.length
+        ? `${childPlans.length}人・教育方針から推定（年齢: ${childPlans.map((c) => `${c.age}歳`).join('・')}）`
         : '子どもなし',
     ),
-    educationPolicy: field(answers.educationPolicy, 'user_input', '教育方針'),
     housingType: field(answers.housing, 'user_input', '住まい'),
     monthlyHousingCost: field(
       housing.monthly,
@@ -105,6 +110,15 @@ export function buildFullInput(answers: QuickAnswers): FullInput {
       '住宅ローン残年数',
       housing.loanYears ? `残り約${housing.loanYears}年と仮定` : 'ローンなし',
     ),
+    loanBalance: field(
+      loanBalance,
+      'recommended_value',
+      'ローン残高',
+      loanBalance ? `概算 約${loanBalance}万円` : 'ローンなし',
+    ),
+    loanRatePct: field(1.0, 'default_value', '住宅ローン金利', '標準値 年1.0%'),
+    loanInterestType: field('variable', 'default_value', '金利タイプ', '標準値 変動金利'),
+    fixedPeriodEndYears: field(0, 'default_value', '固定期間終了', 'ざっくり診断では考慮しません'),
     workStyle: field(answers.workStyle, 'user_input', '将来の働き方'),
     fireAge: field(
       answers.reduceWorkAge,

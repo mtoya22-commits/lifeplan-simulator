@@ -5,6 +5,7 @@ const ICON: Record<string, string> = {
   education_peak: '◆',
   fire_start: '▲',
   mortgage_payoff: '■',
+  fixed_period_end: '◐',
   pension_start: '◇',
   depletion: '!',
   end: '○',
