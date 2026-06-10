@@ -36,9 +36,10 @@ export function ResultDashboard({
   const assessment = useMemo(() => assess(result), [result])
   const suggestions = useMemo(() => buildSuggestions(input, result), [input, result])
 
-  const longevityText = result.fireSuccess
-    ? `${input.endAge.value}歳まで持続`
-    : `${result.assetLongevity}歳ごろ`
+  const longevityValue = result.fireSuccess
+    ? `${input.endAge.value}歳`
+    : `${result.assetLongevity}歳`
+  const longevityUnit = result.fireSuccess ? 'まで持続' : 'ごろ'
 
   return (
     <div className="screen result">
@@ -58,7 +59,12 @@ export function ResultDashboard({
           unit="%"
           tone={result.fireSuccess ? 'good' : 'caution'}
         />
-        <Metric label="資産寿命" value={longevityText} />
+        <Metric
+          label="資産寿命"
+          value={longevityValue}
+          unit={longevityUnit}
+          tone={result.fireSuccess ? 'good' : undefined}
+        />
         <Metric
           label={`${input.endAge.value}歳時点の資産`}
           value={formatMan(result.residualAtEnd)}
@@ -194,32 +200,35 @@ function CashflowTable({ result }: { result: SimulationResult }) {
   // 5年刻みで間引いて表示（スマホで見やすく）
   const rows = result.rows.filter((r, i) => i === 0 || r.age % 5 === 0 || i === result.rows.length - 1)
   return (
-    <table className="cashflow">
-      <thead>
-        <tr>
-          <th>年齢</th>
-          <th>収入</th>
-          <th>支出</th>
-          <th>うち教育</th>
-          <th>資産</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr key={r.age}>
-            <td>{r.age}</td>
-            <td>{r.income}</td>
-            <td>{r.expense}</td>
-            <td>{r.education}</td>
-            <td className={r.assets < 0 ? 'neg' : ''}>{r.assets}</td>
+    <>
+      <table className="cashflow">
+        <thead>
+          <tr>
+            <th>年齢</th>
+            <th>収入</th>
+            <th>支出</th>
+            <th>うち教育</th>
+            <th>資産</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.age}>
+              <td>{r.age}歳</td>
+              <td>{r.income.toLocaleString()}</td>
+              <td>{r.expense.toLocaleString()}</td>
+              <td>{r.education ? r.education.toLocaleString() : '−'}</td>
+              <td className={r.assets < 0 ? 'neg' : ''}>{r.assets.toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="card-hint">単位：万円（5年ごとに表示）</p>
+    </>
   )
 }
 
 function formatMan(v: number): string {
   if (Math.abs(v) >= 10000) return `${(v / 10000).toFixed(2)}億円`
-  return `${Math.round(v)}万円`
+  return `${Math.round(v).toLocaleString()}万円`
 }

@@ -87,5 +87,5 @@ function diffRow(
 
 function formatMan(v: number): string {
   if (Math.abs(v) >= 10000) return `${(v / 10000).toFixed(2)}億円`
-  return `${Math.round(v)}万円`
+  return `${Math.round(v).toLocaleString()}万円`
 }

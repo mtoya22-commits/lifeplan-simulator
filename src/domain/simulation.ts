@@ -41,12 +41,15 @@ export function runSimulation(input: FullInput): SimulationResult {
     let laborIncome: number
     if (age < fireAge) {
       laborIncome = householdNet
-    } else {
+    } else if (age < pensionStartAge) {
+      // FIRE後の労働収入は年金開始まで（高齢期まで働き続ける前提にしない）
       laborIncome = workStyle === 'full_retire' ? 0 : postFireAnnual
+    } else {
+      laborIncome = 0
     }
 
     // --- 年金 ---
-    const pension = age >= input.pensionStartAge.value ? input.pensionAnnual.value : 0
+    const pension = age >= pensionStartAge ? input.pensionAnnual.value : 0
     // --- 退職金（退職予定年齢の年に一度だけ計上） ---
     const lumpSum = age === input.retireAge.value ? input.retirementLumpSum.value : 0
     const income = laborIncome + pension + lumpSum
@@ -76,7 +79,8 @@ export function runSimulation(input: FullInput): SimulationResult {
     const net = income - expense
 
     // 翌年資産 = 前年資産 × (1+年利) + 年間収支
-    assets = assets * (1 + annualReturn) + net
+    // 運用益が乗るのはプラスの資産だけ（マイナス残高に利回りは付けない）
+    assets = (assets > 0 ? assets * (1 + annualReturn) : assets) + net
 
     if (assets < 0 && depletionAge === null) {
       depletionAge = age

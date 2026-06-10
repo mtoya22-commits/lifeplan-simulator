@@ -15,10 +15,10 @@ export function QuickDiagnosis({ initial, onChange, onComplete, onExit }: Props)
   const [openHelp, setOpenHelp] = useState<string | null>(null)
 
   const current = QUICK_PAGES[page]
-  const totalQuestions = QUICK_PAGES.reduce((n, p) => n + p.questions.length, 0)
-  const answeredCount = useMemo(
-    () => Object.values(answers).filter((v) => v !== undefined && (v as unknown) !== '').length,
-    [answers],
+  // 現在ページ以降に残っている設問数（「あと何問」表示用）
+  const remaining = useMemo(
+    () => QUICK_PAGES.slice(page).reduce((n, p) => n + p.questions.length, 0),
+    [page],
   )
 
   function update(patch: Partial<QuickAnswers>) {
@@ -55,7 +55,6 @@ export function QuickDiagnosis({ initial, onChange, onComplete, onExit }: Props)
   }
 
   const progress = Math.round(((page + 1) / QUICK_PAGES.length) * 100)
-  const remaining = totalQuestions - answeredCount
   const isLast = page === QUICK_PAGES.length - 1
 
   return (
@@ -72,9 +71,7 @@ export function QuickDiagnosis({ initial, onChange, onComplete, onExit }: Props)
       <div className="progress">
         <div className="progress-bar" style={{ width: `${progress}%` }} />
       </div>
-      <p className="progress-note">
-        あと約{Math.max(0, remaining)}問・1分ほどで終わります
-      </p>
+      <p className="progress-note">残り{remaining}問・1分ほどで終わります</p>
 
       <div className="page-body">
         <h2 className="page-title">{current.title}</h2>

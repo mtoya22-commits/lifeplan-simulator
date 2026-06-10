@@ -130,7 +130,7 @@ export function buildFullInput(answers: QuickAnswers): FullInput {
       postFire,
       'recommended_value',
       'FIRE後の毎月収入',
-      postFire ? `おすすめ値 約${postFire}万円/月` : '完全リタイア（収入なし）',
+      postFire ? `おすすめ値 約${postFire}万円/月（年金開始まで）` : '完全リタイア（収入なし）',
     ),
     annualReturn: field(
       annualReturn,

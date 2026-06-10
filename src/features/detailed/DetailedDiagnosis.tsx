@@ -77,8 +77,8 @@ export function DetailedDiagnosis({ initial, onChange, onComplete, onExit }: Pro
       </div>
 
       <nav className="bottom-nav">
-        <button className="btn ghost" onClick={next}>
-          スキップ
+        <button className="btn ghost" onClick={back}>
+          {section === 0 ? 'やめる' : '戻る'}
         </button>
         <button className="btn primary" onClick={next}>
           {isLast ? '結果を見る' : '次へ'}

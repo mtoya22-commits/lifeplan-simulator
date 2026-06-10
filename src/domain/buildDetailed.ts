@@ -133,8 +133,10 @@ export function buildFullInputFromDetailed(a: DetailedAnswers): FullInput {
       defaultPostFire,
       'recommended_value',
       'FIRE後の毎月収入',
-      (v) => `${v}万円/月`,
-      defaultPostFire ? `おすすめ値 約${defaultPostFire}万円/月` : '完全リタイア（収入なし）',
+      (v) => `${v}万円/月（年金開始まで）`,
+      defaultPostFire
+        ? `おすすめ値 約${defaultPostFire}万円/月（年金開始まで）`
+        : '完全リタイア（収入なし）',
     ),
     annualReturn: pick(
       a.annualReturnPct !== undefined ? annualReturn : undefined,
